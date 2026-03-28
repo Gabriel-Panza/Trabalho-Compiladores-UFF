@@ -4,11 +4,10 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
         String[][] testCases = {
-                { "[0-9]+\\.[0-9]+", "FLOAT" },
+                { "[0-9][0-9]*.[0-9][0-9]*", "FLOAT" },
                 { "ab|c", "STRING" },
-                { "[a-z][a-z0-9]*", "IDENTIFICADOR" },
+                { "[a-z]([a-z|0-9])*", "IDENTIFICADOR" },
                 { "while", "PALAVRA_RESERVADA" },
-                { "(+ U -) [0-9]+ (.) [0-9]+", "NUMERO_COMPLEXO" },
                 { "a(b|c)*", "TESTE_A" }
         };
 
@@ -25,6 +24,16 @@ public class Main {
 
             System.out.println("Entrada: (" + regex + ", " + tipo + ")");
             System.out.println("Saída:   RegraLexica(\"" + regraLexica.tipo() + "\", " + regraLexica.postfix() + ")\n");
+        }
+
+        for (RegexToPostfix.RegraLexica regra : regrasProntas) {
+            Automato afn = ThompsonBuilder.build(regra.postfix(), regra.tipo());
+
+            System.out.println("Tipo: " + afn.tipo);
+            System.out.println("Inicial: " + afn.estadoInicial);
+            System.out.println("Finais: " + afn.estadosFinais);
+            System.out.println("Transições: " + afn.transicoes);
+            System.out.println();
         }
     }
 }
