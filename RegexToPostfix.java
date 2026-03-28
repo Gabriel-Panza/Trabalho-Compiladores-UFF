@@ -35,6 +35,11 @@ import java.util.Stack;
 
 public class RegexToPostfix {
 
+    // Template para guardar o Tipo e a Lista Postfix
+    public record RegraLexica(String tipo, List<String> postfix) {
+        // O uso de 'record' cria automaticamente os métodos base como construtor, getters, equals, hashCode e toString.
+    }
+
     private static final String CONCAT_OPERATOR = "·"; 
     
     // Categorias de tokens para facilitar o parser
@@ -52,7 +57,7 @@ public class RegexToPostfix {
         }
     }
 
-    // 1. Hierarquia de precedência
+    // Hierarquia de precedência
     private static int getPrecedence(String operator) {
         return switch (operator) {
             case "*", "+", "?" -> 3;  
@@ -79,12 +84,7 @@ public class RegexToPostfix {
                 prevValue = escapedChar;
                 i++; // Pula o próximo caractere pois já foi processado
                 continue;
-            } else if (c == '*' || c == 'U' || c == '|' || c == '?') {
-                tokens.add(new Token(String.valueOf(c), TokenType.OPERATOR));
-                prevType = TokenType.OPERATOR;
-                prevValue = String.valueOf(c);
-            } else if (c == '[') {
-                // Lê o bloco [ ... ] inteiro como um único Token de Operando
+            } else if (c == '[' && i + 1 < regex.length()) { // Leitura do bloco [...]
                 StringBuilder sb = new StringBuilder();
                 while (i < regex.length() && regex.charAt(i) != ']') {
                     sb.append(regex.charAt(i));
@@ -103,22 +103,22 @@ public class RegexToPostfix {
                 tokens.add(new Token(")", TokenType.PAREN_RIGHT));
                 prevType = TokenType.PAREN_RIGHT;
                 prevValue = ")";
-            } else if (c == '*' || c == 'U' || c == '|') {
+            } else if (c == '*' || c == 'U' || c == '|' || c == '?') {
                 tokens.add(new Token(String.valueOf(c), TokenType.OPERATOR));
                 prevType = TokenType.OPERATOR;
                 prevValue = String.valueOf(c);
             } else if (c == '+') {
-                // Verificação de se é um operador de Kleene ou se é um sinal matemático de positivo?
+                // Verificação de se é o operador de Kleene positivo ou se é o sinal de positivo literal
                 if (prevType == TokenType.OPERAND || prevType == TokenType.PAREN_RIGHT || prevValue.equals("*") || prevValue.equals("+")) {
                     tokens.add(new Token("+", TokenType.OPERATOR));
                     prevType = TokenType.OPERATOR;
-                } else { // Caso contrário, atua como operando (sinal literal)
+                } else {
                     tokens.add(new Token("+", TokenType.OPERAND));
                     prevType = TokenType.OPERAND;
                 }
                 prevValue = "+";
             } else {
-                // Qualquer outro caractere (ex: '.', '-', letras, números soltos) é operando literal
+                // Qualquer outro caractere
                 tokens.add(new Token(String.valueOf(c), TokenType.OPERAND));
                 prevType = TokenType.OPERAND;
                 prevValue = String.valueOf(c);
@@ -127,7 +127,7 @@ public class RegexToPostfix {
         return tokens;
     }
 
-    // Adição de concatenação explícita agora baseada na lista de tokens
+    // Adição de concatenação explícita (inserindo '·')
     private static List<Token> addExplicitConcatenation(List<Token> tokens) {
         List<Token> result = new ArrayList<>();
         
@@ -140,7 +140,7 @@ public class RegexToPostfix {
                 
                 boolean currentCanEndLiteral = (current.type == TokenType.OPERAND) || 
                                                (current.type == TokenType.PAREN_RIGHT) || 
-                                               (current.type == TokenType.OPERATOR && (current.value.equals("*") || current.value.equals("+")));
+                                               (current.type == TokenType.OPERATOR && (current.value.equals("*") || current.value.equals("+") || current.value.equals("?")));
                 
                 boolean nextCanStartLiteral = (next.type == TokenType.OPERAND) || 
                                               (next.type == TokenType.PAREN_LEFT);
@@ -153,36 +153,38 @@ public class RegexToPostfix {
         return result;
     }
 
-    // Algoritmo Shunting Yard adaptado para ler Tokens
-    public static String convertPostfix(String regex) {
+    // Algoritmo Shunting Yard
+    public static List<String> convertPostfix(String regex) {
         List<Token> tokens = tokenize(regex);
         List<Token> preparedTokens = addExplicitConcatenation(tokens);
         
-        StringBuilder output = new StringBuilder();
+        List<String> output = new ArrayList<>();
         Stack<Token> operatorStack = new Stack<>();
+        
         for (Token token : preparedTokens) {
             if (token.type == TokenType.OPERAND) {
-                // Meramente estético. Adiciona espaços na saída para separar operandos com múltiplos caracteres visualmente
-                output.append(token.value).append(" ");
+                output.add(token.value);
             } else if (token.type == TokenType.PAREN_LEFT) {
                 operatorStack.push(token);
             } else if (token.type == TokenType.PAREN_RIGHT) {
                 while (!operatorStack.isEmpty() && operatorStack.peek().type != TokenType.PAREN_LEFT) {
-                    output.append(operatorStack.pop().value).append(" ");
+                    output.add(operatorStack.pop().value);
                 }
-                if (!operatorStack.isEmpty()) operatorStack.pop(); 
+                if (!operatorStack.isEmpty()) operatorStack.pop(); // Remove o '(' da pilha
             } else if (token.type == TokenType.OPERATOR) {
                 while (!operatorStack.isEmpty() && operatorStack.peek().type != TokenType.PAREN_LEFT && 
                        getPrecedence(operatorStack.peek().value) >= getPrecedence(token.value)) {
-                    output.append(operatorStack.pop().value).append(" ");
+                    output.add(operatorStack.pop().value);
                 }
                 operatorStack.push(token);
             }
         }
 
+        // Desempilha o resto dos operadores
         while (!operatorStack.isEmpty()) {
-            output.append(operatorStack.pop().value).append(" ");
+            output.add(operatorStack.pop().value);
         }
-        return output.toString().trim();
+        
+        return output;
     }
 }

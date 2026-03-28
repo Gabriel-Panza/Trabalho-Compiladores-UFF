@@ -7,16 +7,17 @@ public class Main {
         // Ler o arquivo com as regex
         String[] testCases = {
                 "(+ U -) [0-9]+ (.) [0-9]+",
+                "[0-9]+\\.[0-9]+",
                 "a(b|c)*",
                 "a.b*",
                 "(a|b)*abb",
                 "ab|c"
         };
 
-        List<String> postfixRegexs = new ArrayList<>();
+        List<List<String>> postfixRegexs = new ArrayList<>();
 
         for (String test : testCases) {
-            String postfix = RegexToPostfix.convertPostfix(test);
+            List<String> postfix = RegexToPostfix.convertPostfix(test);
 
             System.out.println("Regex:   " + test);
             System.out.println("Postfix: " + postfix + "\n");
