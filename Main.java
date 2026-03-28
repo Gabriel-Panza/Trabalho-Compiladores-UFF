@@ -3,26 +3,28 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-
-        // Ler o arquivo com as regex
-        String[] testCases = {
-                "(+ U -) [0-9]+ (.) [0-9]+",
-                "[0-9]+\\.[0-9]+",
-                "a(b|c)*",
-                "a.b*",
-                "(a|b)*abb",
-                "ab|c"
+        String[][] testCases = {
+                { "[0-9]+\\.[0-9]+", "FLOAT" },
+                { "ab|c", "STRING" },
+                { "[a-z][a-z0-9]*", "IDENTIFICADOR" },
+                { "while", "PALAVRA_RESERVADA" },
+                { "(+ U -) [0-9]+ (.) [0-9]+", "NUMERO_COMPLEXO" },
+                { "a(b|c)*", "TESTE_A" }
         };
 
-        List<List<String>> postfixRegexs = new ArrayList<>();
+        List<RegexToPostfix.RegraLexica> regrasProntas = new ArrayList<>();
+        for (String[] test : testCases) {
+            String regex = test[0];
+            String tipo = test[1];
 
-        for (String test : testCases) {
-            List<String> postfix = RegexToPostfix.convertPostfix(test);
+            String regexLimpa = regex.replace(" ", "");
+            List<String> postfix = RegexToPostfix.convertPostfix(regexLimpa);
 
-            System.out.println("Regex:   " + test);
-            System.out.println("Postfix: " + postfix + "\n");
+            RegexToPostfix.RegraLexica regraLexica = new RegexToPostfix.RegraLexica(tipo, postfix);
+            regrasProntas.add(regraLexica);
 
-            postfixRegexs.add(postfix);
+            System.out.println("Entrada: (" + regex + ", " + tipo + ")");
+            System.out.println("Saída:   RegraLexica(\"" + regraLexica.tipo() + "\", " + regraLexica.postfix() + ")\n");
         }
     }
 }
