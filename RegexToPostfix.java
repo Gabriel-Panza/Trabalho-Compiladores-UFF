@@ -103,18 +103,4 @@ public class RegexToPostfix {
         }
         stack.push(operator);
     }
-
-    public static void main(String[] args) {
-        String[] testCases = {
-            "a(b|c)*",
-            "a.b*", 
-            "(a|b)*abb", 
-            "ab|c"
-        };
-        
-        for (String test : testCases) {
-            System.out.println("Regex:   " + test);
-            System.out.println("Postfix: " + convertPostfix(test) + "\n");
-        }
-    }
 }
