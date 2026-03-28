@@ -6,6 +6,7 @@ public class Main {
 
         // Ler o arquivo com as regex
         String[] testCases = {
+                "(+ U -) [0-9]+ (.) [0-9]+",
                 "a(b|c)*",
                 "a.b*",
                 "(a|b)*abb",
