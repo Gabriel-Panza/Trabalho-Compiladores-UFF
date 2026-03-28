@@ -108,13 +108,11 @@ public class RegexToPostfix {
                 prevType = TokenType.OPERATOR;
                 prevValue = String.valueOf(c);
             } else if (c == '+') {
-                // Lógica de desambiguação: É operador de Kleene ou é sinal matemático de positivo?
-                if (prevType == TokenType.OPERAND || prevType == TokenType.PAREN_RIGHT || 
-                    prevValue.equals("*") || prevValue.equals("+")) {
+                // Verificação de se é um operador de Kleene ou se é um sinal matemático de positivo?
+                if (prevType == TokenType.OPERAND || prevType == TokenType.PAREN_RIGHT || prevValue.equals("*") || prevValue.equals("+")) {
                     tokens.add(new Token("+", TokenType.OPERATOR));
                     prevType = TokenType.OPERATOR;
-                } else {
-                    // Caso contrário, atua como operando (sinal literal)
+                } else { // Caso contrário, atua como operando (sinal literal)
                     tokens.add(new Token("+", TokenType.OPERAND));
                     prevType = TokenType.OPERAND;
                 }
@@ -164,7 +162,7 @@ public class RegexToPostfix {
         Stack<Token> operatorStack = new Stack<>();
         for (Token token : preparedTokens) {
             if (token.type == TokenType.OPERAND) {
-                // Adicionamos espaços na saída para separar operandos com múltiplos caracteres visualmente
+                // Meramente estético. Adiciona espaços na saída para separar operandos com múltiplos caracteres visualmente
                 output.append(token.value).append(" ");
             } else if (token.type == TokenType.PAREN_LEFT) {
                 operatorStack.push(token);
