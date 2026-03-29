@@ -29,11 +29,18 @@ public class Main {
         for (RegexToPostfix.RegraLexica regra : regrasProntas) {
             Automato afn = ThompsonBuilder.build(regra.postfix(), regra.tipo());
 
-            System.out.println("Tipo: " + afn.tipo);
+            System.out.println("--- AFN (" + afn.tipo + ") ---");
             System.out.println("Inicial: " + afn.estadoInicial);
             System.out.println("Finais: " + afn.estadosFinais);
             System.out.println("Transições: " + afn.transicoes);
-            System.out.println();
+
+            Automato afd = NfaToDfaConverter.convert(afn);
+
+            System.out.println("--- AFD (" + afd.tipo + ") ---");
+            System.out.println("Inicial: " + afd.estadoInicial);
+            System.out.println("Finais: " + afd.estadosFinais);
+            System.out.println("Transições: " + afd.transicoes);
+            System.out.println("===================================\n");
         }
     }
 }
