@@ -16,8 +16,7 @@ public class Main {
             String regex = test[0];
             String tipo = test[1];
 
-            String regexLimpa = regex.replace(" ", "");
-            List<String> postfix = RegexToPostfix.convertPostfix(regexLimpa);
+            List<String> postfix = RegexToPostfix.convertPostfix(regex);
 
             RegexToPostfix.RegraLexica regraLexica = new RegexToPostfix.RegraLexica(tipo, postfix);
             regrasProntas.add(regraLexica);
