@@ -20,18 +20,5 @@ O gerador segue rigorosamente o fluxo clássico de construção de scanners:
 ## Como utilizar
 
 ```java
-// 1. Defina sua Regex
-String regex = "a(b|c)*";
-
-// 2. Converta para Postfix
-String postfix = RegexToPostfix.convert(regex);
-
-// 3. Gere o AFN (Thompson)
-NFAState nfa = ThompsonConstruction.build(postfix);
-
-// 4. Converta para AFD
-DFAState dfa = SubsetConstruction.convertToDFA(nfa);
-
-// 5. Minimize o Autômato
-DFAState optimizedDfa = DFAMinimizer.minimize(dfa);
+run main.java
 ```
