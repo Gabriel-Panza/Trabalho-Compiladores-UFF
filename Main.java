@@ -32,6 +32,7 @@ public class Main {
             System.out.println("Inicial: " + afn.estadoInicial);
             System.out.println("Finais: " + afn.estadosFinais);
             System.out.println("Transições: " + afn.transicoes);
+            System.out.println("===================================\n");
 
             Automato afd = NfaToDfaConverter.convert(afn);
 
@@ -39,6 +40,14 @@ public class Main {
             System.out.println("Inicial: " + afd.estadoInicial);
             System.out.println("Finais: " + afd.estadosFinais);
             System.out.println("Transições: " + afd.transicoes);
+            System.out.println("===================================\n");
+
+            Automato afdMin = DfaMinimizer.minimize(afd);
+
+            System.out.println("--- AFD MINIMIZADO (" + afdMin.tipo + ") ---");
+            System.out.println("Inicial: " + afdMin.estadoInicial);
+            System.out.println("Finais: " + afdMin.estadosFinais);
+            System.out.println("Transições: " + afdMin.transicoes);
             System.out.println("===================================\n");
         }
     }
