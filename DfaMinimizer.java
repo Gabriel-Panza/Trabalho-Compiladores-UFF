@@ -2,34 +2,9 @@ import java.util.*;
 // https://www.geeksforgeeks.org/theory-of-computation/minimization-of-dfa/
 public class DfaMinimizer {
 
-    private static Set<String> getAlfabeto(Automato afd) {
-        Set<String> alfabeto = new HashSet<>();
-        for (Map<String, List<Integer>> transicoesDoEstado : afd.transicoes.values()) {
-            for (String simbolo : transicoesDoEstado.keySet()) {
-                if (!simbolo.equals("ε")) {
-                    alfabeto.add(simbolo);
-                }
-            }
-        }
-        return alfabeto;
-    }
-
-    private static Set<Integer> getTodosEstados(Automato afd) {
-        Set<Integer> estados = new HashSet<>();
-        estados.add(afd.estadoInicial);
-        estados.addAll(afd.estadosFinais);
-        estados.addAll(afd.transicoes.keySet());
-        for (Map<String, List<Integer>> transicoes : afd.transicoes.values()) {
-            for (List<Integer> destinos : transicoes.values()) {
-                estados.addAll(destinos);
-            }
-        }
-        return estados;
-    }
-
     public static Automato minimize(Automato afd) {
-        Set<Integer> todosEstados = getTodosEstados(afd);
-        Set<String> alfabeto = getAlfabeto(afd);
+        Set<Integer> todosEstados = afd.getTodosEstados();
+        Set<String> alfabeto = afd.getAlfabeto();
 
         Set<Integer> finais = new HashSet<>(afd.estadosFinais);
         Set<Integer> naoFinais = new HashSet<>(todosEstados);
@@ -90,7 +65,7 @@ public class DfaMinimizer {
             particoes = novasParticoes;
         }
 
-        Automato afdMinimizado = new Automato(afd.tipo + "_MINIMIZADO");
+        Automato afdMinimizado = new Automato(afd.tipo);
 
         Map<Integer, Integer> mapaNovosEstados = new HashMap<>();
         for (int i = 0; i < particoes.size(); i++) {
