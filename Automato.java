@@ -4,6 +4,7 @@ public class Automato {
     int estadoInicial;
     Set<Integer> estadosFinais = new HashSet<>();
     Map<Integer, Map<String, List<Integer>>> transicoes = new HashMap<>();
+    Map<Integer, String> anotacaoDeEstados = new HashMap<>();
     String tipo;
 
     public Automato(String tipo) {

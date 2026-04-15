@@ -25,6 +25,7 @@ public class Main {
             System.out.println("Saída:   RegraLexica(\"" + regraLexica.tipo() + "\", " + regraLexica.postfix() + ")\n");
         }
 
+        final UnifiedAutomatonBuilder builder = new UnifiedAutomatonBuilder();
         for (RegexToPostfix.RegraLexica regra : regrasProntas) {
             Automato afn = ThompsonBuilder.build(regra.postfix(), regra.tipo());
 
@@ -49,6 +50,11 @@ public class Main {
             System.out.println("Finais: " + afdMin.estadosFinais);
             System.out.println("Transições: " + afdMin.transicoes);
             System.out.println("===================================\n");
+            System.out.println();
+            builder.addAutomato(afn);
         }
+        //builder.buildFinalAutomato();
+
+
     }
 }
