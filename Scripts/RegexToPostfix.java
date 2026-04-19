@@ -1,4 +1,7 @@
+package Scripts;
+
 /* 
+* Lógica Implementada:
 1. Tokenização (Lexer)
 Antes de converter, o algoritmo agrupa os caracteres da string original em 'Tokens' (blocos com significado). Isso é necessário porque:
 - Entidades como '[0-9]' ou caracteres de escape como '\.' são lidos como um único operando, e não caracteres soltos.

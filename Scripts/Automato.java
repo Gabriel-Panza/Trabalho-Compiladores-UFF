@@ -1,3 +1,19 @@
+package Scripts;
+
+/**
+ * ESTRUTURA FUNDAMENTAL DO AUTÔMATO (AFN/AFD)
+ * Esta classe serve como a representação de grafo para os autômatos, suportando 
+ * tanto características de não-determinismo (AFN) quanto determinismo (AFD).
+ * * Principais Funcionalidades:
+ * 1. Representação de Transições: Utiliza mapas aninhados para armazenar transições 
+ * entre estados, permitindo múltiplos destinos para um mesmo símbolo (essencial para AFNs).
+ * 2. ε-closure (Fecho-épsilon): Implementa a busca em profundidade (usando Pilha) para 
+ * encontrar todos os estados alcançáveis através de transições vazias, base para 
+ * o algoritmo de Subset Construction.
+ * 3. Função Move: Computa o conjunto de estados alcançáveis a partir de um conjunto 
+ * de estados atual dado um símbolo específico do alfabeto.
+ */
+
 import java.util.*;
 
 public class Automato {

@@ -1,5 +1,21 @@
+package Scripts;
+
+/**
+ * MINIMIZADOR DE AFD (ALGORITMO DE PARTICIONAMENTO / HOPCROFT)
+ * Otimiza o AFD resultante reduzindo o número de estados ao mínimo necessário 
+ * para manter a equivalência da linguagem.
+ * * Etapas da Minimização:
+ * 1. Particionamento Inicial: Divide os estados em dois grupos fundamentais: 
+ * estados de aceitação (finais) e estados de não-aceitação.
+ * 2. Refinamento de Classes: Divide as partições sucessivamente até que todos 
+ * os estados em um grupo sejam indistinguíveis em relação às suas transições.
+ * 3. Fusão de Estados: Reconstrói o autômato utilizando os representantes de 
+ * cada partição final, resultando em uma estrutura mais compacta e eficiente.
+ * * Fontes
+ * - https://www.geeksforgeeks.org/theory-of-computation/minimization-of-dfa/
+ */
+
 import java.util.*;
-// https://www.geeksforgeeks.org/theory-of-computation/minimization-of-dfa/
 public class DfaMinimizer {
 
     public static Automato minimize(Automato afd) {

@@ -1,4 +1,7 @@
+package Scripts;
+
 /*
+* Lógica Implementada:
 1. novoEstado
 Responsável por gerar identificadores únicos para os estados do autômato.
 - Utiliza um contador global (contadorEstados).
@@ -52,7 +55,6 @@ Responsável por copiar todas as transições de um autômato para outro.
 - Percorre todos os estados e suas transições.
 - Adiciona cada transição no autômato destino.
 - Usado para unir os grafos dos autômatos ao criar concatenação, união e kleene.
-
 */
 
 import java.util.List;

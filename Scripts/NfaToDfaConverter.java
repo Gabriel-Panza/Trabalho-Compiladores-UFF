@@ -1,3 +1,18 @@
+package Scripts;
+
+/**
+ * CONVERSOR DE AFN PARA AFD (ALGORITMO DE CONSTRUÇÃO DE SUBCONJUNTOS)
+ * Responsável pela etapa de determinização, transformando o AFN gerado por 
+ * Thompson em um AFD equivalente.
+ * * Lógica Implementada:
+ * 1. Determinização: Elimina transições-ε e o não-determinismo (múltiplas saídas 
+ * para o mesmo símbolo), garantindo performance linear O(n) na análise.
+ * 2. Agrupamento de Estados: Cria novos estados no AFD que representam conjuntos 
+ * (subsets) de estados do AFN original, utilizando o fecho-épsilon como critério.
+ * 3. Mapeamento Dinâmico: Utiliza uma fila de processamento para explorar todos 
+ * os estados alcançáveis do novo autômato de forma exaustiva.
+ */
+
 import java.util.*;
 
 public class NfaToDfaConverter {
