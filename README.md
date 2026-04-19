@@ -1,24 +1,39 @@
-# Trabalho-Compiladores-UFF
+# Gerador de Scanners & Parser Top-Down (Racket)
 
-Este projeto é um gerador de analisadores léxicos (scanners) genérico, desenvolvido com base nos princípios fundamentais da **Teoria da Computação** e **Linguagens Formais**. O motor é capaz de transformar expressões regulares em Autômatos Finitos Determinísticos (AFD) otimizados para o reconhecimento de tokens.
+Este projeto consiste em um motor de processamento de linguagens desenvolvido para a disciplina de Compiladores. Ele implementa um pipeline completo, desde a interpretação de expressões regulares até a construção de uma **Árvore Sintática Abstrata (AST)**, utilizando as técnicas clássicas da ciência da computação para garantir eficiência e precisão.
 
-## O Pipeline de Compilação
+## Metodologia e Arquitetura
 
-O gerador segue rigorosamente o fluxo clássico de construção de scanners:
+O projeto é dividido em dois grandes núcleos: o **Motor Léxico** (Gerador de Scanners) e o **Analisador Sintático** (Parser).
 
-1.  **Regex to Postfix**: Converte expressões regulares (Infix) para notação posfixa usando o algoritmo *Shunting-yard*, facilitando o tratamento de precedência e a inserção de concatenações explícitas.
-2.  **Algoritmo de Thompson**: Transforma a expressão posfixa em um **AFN** (Autômato Finito Não-Determinístico) com transições-ε.
-3.  **Subset Construction**: Converte o AFN em um **AFD** (Autômato Finito Determinístico), eliminando o não-determinismo e garantindo performance de tempo linear $O(n)$ na análise.
-4.  **Minimização de Hopcroft**: Otimiza o AFD final, fundindo estados equivalentes para reduzir a ocupação de memória e o número de transições.
+### 1. O Pipeline Léxico (Regex para AFD)
+Para transformar regras textuais em um reconhecedor de tokens de alta performance, seguimos o fluxo:
 
-## Tecnologias e Conceitos
+* **Conversão Postfix**: Expressões regulares em formato *Infix* são convertidas para notação posfixa através do algoritmo **Shunting-yard**. Isso resolve ambiguidades de precedência e insere operadores de concatenação explícita ($\cdot$).
+* **Construção de Thompson**: A expressão posfixa é transformada em um **Autômato Finito Não-Determinístico (AFN)**. Este modelo permite transições vazias ($\epsilon$) e múltiplos caminhos, facilitando a montagem estrutural da lógica.
+* **Subset Construction**: O AFN é convertido em um **Autômato Finito Determinístico (AFD)**. Esse processo elimina o não-determinismo, resultando em um motor que processa cada caractere em tempo linear $O(n)$.
+* **Minimização de Hopcroft**: O AFD é otimizado através do particionamento de estados equivalentes, reduzindo o autômato ao seu menor tamanho possível sem perder a fidelidade da linguagem.
 
-* **Linguagem:** Java 17+
-* **Estruturas de Dados:** Grafos direcionados, Pilhas de fragmentos, Mapas de transição.
-* **Conceitos:** ε-closure, Particionamento de estados, Alfabeto de entrada, Maximum Munch.
+### 2. Estratégia de Reconhecimento e Análise
+* **Maximum Munch**: O scanner implementa a política do "maior casamento possível". Ao ler o código-fonte, ele garante que tokens mais longos tenham prioridade sobre prefixos (ex: identifica `define` como um único identificador em vez de vários menores).
+* **Parser de Descida Recursiva (Top-Down)**: A análise sintática é feita através de uma gramática **LL(1)**. O parser consome a lista de tokens e reconstrói a hierarquia de parênteses e expressões da linguagem Racket, gerando uma AST visual.
+* **Sincronização de Erros**: O sistema é capaz de se recuperar de falhas léxicas ou sintáticas, reportando o erro com o contexto da linha e continuando a análise das expressões subsequentes.
 
-## Como utilizar
+---
 
-```java
-run main.java
+## Como Executar
+
+O projeto utiliza um **Makefile** para simplificar o ciclo de vida do desenvolvimento. Certifique-se de ter o JDK 17 ou superior instalado.
+
+### Compilação
+Para compilar todos os módulos do projeto e gerar os arquivos binários:
+```bash
+make
 ```
+
+### Execução
+Para iniciar o compilador e processar o arquivo de testes padrão:
+```bash
+make run
+```
+*O programa lerá o conteúdo, exibirá o log de análise léxica, a lista de tokens gerados e, por fim, as árvores sintáticas resultantes.*
