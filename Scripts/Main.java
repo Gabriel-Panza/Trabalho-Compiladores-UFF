@@ -4,52 +4,74 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        String[][] testCases = {
-                { "[0-9][0-9]*.[0-9][0-9]*", "FLOAT" },
-                { "ab|c", "STRING" },
-                { "[a-z]([a-z|0-9])*", "IDENTIFICADOR" },
-                { "while", "PALAVRA_RESERVADA" },
-                { "a(b|c)*", "TESTE_A" }
+        String[][] regrasRacket = {
+            { "\\(", "LPAREN" },
+            { "\\)", "RPAREN" },
+            { "define", "KW_DEFINE" },
+            { "lambda", "KW_LAMBDA" },
+            { "if", "KW_IF" },
+            { "#t|#f", "BOOLEAN" },
+            { "[a-zA-Z!$%&*/:<=>?^_~][a-zA-Z0-9!$%&*/:<=>?^_~+-.@]*", "IDENTIFIER" },
+            { "[0-9]+", "INTEGER" },
+            { "[0-9]+.[0-9]*", "FLOAT" }
         };
 
+        System.out.println("================================================================");
+        System.out.println("GERADOR DE SCANNERS - RACKET EDITION");
+        System.out.println("================================================================");
+
         List<RegexToPostfix.RegraLexica> regrasProntas = new ArrayList<>();
-        for (String[] test : testCases) {
-            String regex = test[0];
-            String tipo = test[1];
+        System.out.println("\nFASE DE TOKENIZAÇÃO E POSTFIX:");
+        System.out.println("----------------------------------------------------------------");
+        for (String[] regra : regrasRacket) {
+            String regex = regra[0];
+            String tipo = regra[1];
 
             List<String> postfix = RegexToPostfix.convertPostfix(regex);
-
             RegexToPostfix.RegraLexica regraLexica = new RegexToPostfix.RegraLexica(tipo, postfix);
             regrasProntas.add(regraLexica);
 
-            System.out.println("Entrada: (" + regex + ", " + tipo + ")");
-            System.out.println("Saída:   RegraLexica(\"" + regraLexica.tipo() + "\", " + regraLexica.postfix() + ")\n");
+            System.out.printf("  %-15s -> %s\n", "[" + tipo + "]", regex);
+            System.out.printf("  %-15s    Postfix: %s\n\n", "", postfix);
         }
+        System.out.println("----------------------------------------------------------------");
+        System.out.println("CONSTRUÇÃO E OTIMIZAÇÃO DE AUTÔMATOS:");
+        System.out.println("----------------------------------------------------------------");
 
         for (RegexToPostfix.RegraLexica regra : regrasProntas) {
+            System.out.println("\n💎 TOKEN: " + regra.tipo());
+            
+            // AFND (Thompson)
             Automato afn = ThompsonBuilder.build(regra.postfix(), regra.tipo());
+            printStatus("AFN", afn);
 
-            System.out.println("--- AFN (" + afn.tipo + ") ---");
-            System.out.println("Inicial: " + afn.estadoInicial);
-            System.out.println("Finais: " + afn.estadosFinais);
-            System.out.println("Transições: " + afn.transicoes);
-            System.out.println("===================================\n");
-
+            // AFD (Subset Construction)
             Automato afd = NfaToDfaConverter.convert(afn);
+            printStatus("AFD", afd);
 
-            System.out.println("--- AFD (" + afd.tipo + ") ---");
-            System.out.println("Inicial: " + afd.estadoInicial);
-            System.out.println("Finais: " + afd.estadosFinais);
-            System.out.println("Transições: " + afd.transicoes);
-            System.out.println("===================================\n");
-
+            // AFD Miniminizado (Hopcroft)
             Automato afdMin = DfaMinimizer.minimize(afd);
-
-            System.out.println("--- AFD MINIMIZADO (" + afdMin.tipo + ") ---");
-            System.out.println("Inicial: " + afdMin.estadoInicial);
-            System.out.println("Finais: " + afdMin.estadosFinais);
-            System.out.println("Transições: " + afdMin.transicoes);
-            System.out.println("===================================\n");
+            printStatus("AFD MINIMIZADO", afdMin);
+            
+            System.out.println("────────────────────────────────────────────────────────────────");
         }
+    }
+
+    private static void printStatus(String fase, Automato auto) {
+        System.out.printf("   %-16s | Início: %-2d | Finais: %-12s | Transições: %d\n", 
+            fase, 
+            auto.estadoInicial, 
+            auto.estadosFinais,
+            countTransitions(auto));
+    }
+
+    private static int countTransitions(Automato auto) {
+        int count = 0;
+        for (var entry : auto.transicoes.values()) {
+            for (var list : entry.values()) {
+                count += list.size();
+            }
+        }
+        return count;
     }
 }

@@ -235,4 +235,20 @@ class ThompsonBuilder {
             }
         }
     }
+
+    public static Automato unify(List<Automato> automatos) {
+    Automato superAfn = new Automato("RACKET_LEXER");
+    int novoInicio = novoEstado();
+    superAfn.estadoInicial = novoInicio;
+
+    for (Automato afn : automatos) {
+        superAfn.addTransicao(novoInicio, "ε", afn.estadoInicial);
+        merge(superAfn, afn);
+        for (int f : afn.estadosFinais) {
+            superAfn.estadosFinais.add(f);
+            superAfn.mapeamentoTokens.put(f, afn.tipo);
+        }
+    }
+    return superAfn;
+}
 }

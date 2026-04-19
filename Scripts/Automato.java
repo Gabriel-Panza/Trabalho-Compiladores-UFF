@@ -19,6 +19,7 @@ import java.util.*;
 public class Automato {
     int estadoInicial;
     Set<Integer> estadosFinais = new HashSet<>();
+    Map<Integer, String> mapeamentoTokens = new HashMap<>(); 
     Map<Integer, Map<String, List<Integer>>> transicoes = new HashMap<>();
     String tipo;
 
