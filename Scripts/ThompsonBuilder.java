@@ -61,7 +61,6 @@ import java.util.List;
 import java.util.Stack;
 
 class ThompsonBuilder {
-
     private static int contadorEstados = 0;
 
     private static int novoEstado() {
@@ -73,7 +72,6 @@ class ThompsonBuilder {
         Stack<Automato> stack = new Stack<>();
 
         for (String token : postfix) {
-
             switch (token) {
                 case "|": {
                     Automato b = stack.pop();
@@ -81,29 +79,66 @@ class ThompsonBuilder {
                     stack.push(union(a, b));
                     break;
                 }
-
                 case "·": {
                     Automato b = stack.pop();
                     Automato a = stack.pop();
                     stack.push(concat(a, b));
                     break;
                 }
-
                 case "*": {
-                    Automato a = stack.pop();
-                    stack.push(kleene(a));
+                    stack.push(kleene(stack.pop()));
                     break;
                 }
-
+                case "+": {
+                    stack.push(plus(stack.pop()));
+                    break;
+                }
+                case "?": {
+                    stack.push(optional(stack.pop()));
+                    break;
+                }
                 default: {
                     stack.push(basico(token));
                 }
             }
         }
-
         Automato resultado = stack.pop();
         resultado.tipo = tipo;
         return resultado;
+    }
+
+    // A+ = A seguido de A* (A·A*)
+    private static Automato plus(Automato a) {
+        Automato r = new Automato(null);
+        int inicio = novoEstado();
+        int fim = novoEstado();
+        r.estadoInicial = inicio;
+        r.estadosFinais.add(fim);
+
+        r.addTransicao(inicio, "ε", a.estadoInicial);
+        for (int f : a.estadosFinais) {
+            r.addTransicao(f, "ε", a.estadoInicial);
+            r.addTransicao(f, "ε", fim);
+        }
+        merge(r, a);
+        return r;
+    }
+
+    // A? = A ou vazio (A | ε)
+    private static Automato optional(Automato a) {
+        Automato r = new Automato(null);
+        int inicio = novoEstado();
+        int fim = novoEstado();
+        r.estadoInicial = inicio;
+        r.estadosFinais.add(fim);
+
+        r.addTransicao(inicio, "ε", a.estadoInicial);
+        r.addTransicao(inicio, "ε", fim);
+        for (int f : a.estadosFinais) {
+            r.addTransicao(f, "ε", fim);
+        }
+        merge(r, a);
+        return r;
     }
 
     // 🔹 AFN básico
