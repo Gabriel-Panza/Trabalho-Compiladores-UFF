@@ -1,12 +1,15 @@
-import java.security.KeyPair;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 class UnifiedAutomatonBuilder {
   final List<Automato> automatos = new ArrayList<Automato>();
-
+  private static final int ASCII_SIZE = 256;
+  private static final int SINK_COMPONENT_STATE = -1;
 
   public void addAutomato(Automato automato) {
     automatos.add(automato);
@@ -15,108 +18,187 @@ class UnifiedAutomatonBuilder {
   public record AutomatoStatePointer(String automatoTipo, int estado){}
 
   public Automato buildFinalAutomato() {
-    //Inicialização
     final Automato resultAutomato = new Automato("FINAL");
-    resultAutomato.estadoInicial = 0;
-    int automatosNoEstadoFinal = 0;
-    final Map<String, Automato> tipoToAutomato = new HashMap<>();
-    final List<AutomatoStatePointer> estadosAtuais = new ArrayList<>();
-    for (Automato automato : automatos) {
-      tipoToAutomato.put(automato.tipo, automato);
-      estadosAtuais.add(new AutomatoStatePointer(automato.tipo, automato.estadoInicial));
+
+    if (automatos.isEmpty()) {
+      resultAutomato.estadoInicial = 0;
+      return resultAutomato;
     }
 
-    // Construção do automato unificado
-    while (automatosNoEstadoFinal < estadosAtuais.size()) {
-      // Verifica os automatos em estados finais, e move os pointers daqueles que não estão
-      for (AutomatoStatePointer pointer : estadosAtuais) {
-        Automato automato = tipoToAutomato.get(pointer.automatoTipo);
-        if (automato.estadosFinais.contains(pointer.estado)) {
-          // TODO: Evitar o problema de um estado final ser contado mais de uma vez
-          automatosNoEstadoFinal++;
+    // Priority is determined by the order of addition
+    for (int i = 0; i < automatos.size(); i++) {
+      resultAutomato.setTipoPriority(automatos.get(i).tipo, i);
+    }
+
+    // List with initial states of each automaton
+    final List<Integer> initialProduct = new ArrayList<>();
+    for (Automato automato : automatos) {
+      initialProduct.add(automato.estadoInicial);
+    }
+
+    // Maps to keep track of the product states and their corresponding unified states
+    final Map<List<Integer>, Integer> productToUnified = new HashMap<>();
+    // List to retrieve the product state from a unified state index
+    final List<List<Integer>> unifiedToProduct = new ArrayList<>();
+    final ArrayDeque<Integer> queue = new ArrayDeque<>();
+
+    resultAutomato.estadoInicial = 0;
+    productToUnified.put(initialProduct, 0);
+    unifiedToProduct.add(initialProduct);
+    queue.add(0);
+
+    while (!queue.isEmpty()) {
+      int unifiedState = queue.poll(); // Gets first from queue
+      // Gets everything that contributes to this state in the unified automaton
+      List<Integer> productState = unifiedToProduct.get(unifiedState);
+
+      annotateFinalState(resultAutomato, unifiedState, productState);
+
+      Map<String, boolean[]> signatureToChars = new LinkedHashMap<>();
+      for (int ascii = 0; ascii < ASCII_SIZE; ascii++) {
+        List<Integer> nextProduct = new ArrayList<>(automatos.size());
+        for (int i = 0; i < automatos.size(); i++) {
+          int next = nextStateForChar(automatos.get(i), productState.get(i), (char) ascii);
+          nextProduct.add(next);
         }
 
-        for (Map.Entry<Integer, Map<String, List<Integer>>> entry : automato.transicoes.entrySet()) {
-          int origem = entry.getKey();
-          Map<String, List<Integer>> transicoes = entry.getValue();
-          for (Map.Entry<String, List<Integer>> trans : transicoes.entrySet()) {
-            String simbolo = trans.getKey();
-            List<Integer> destinos = trans.getValue();
-            final List<Character> acceptedChars = getAcceptedCharactersByRegex(simbolo);
+        String signature = buildSignature(nextProduct);
+        boolean[] mask = signatureToChars.computeIfAbsent(signature, k -> new boolean[ASCII_SIZE]);
+        mask[ascii] = true;
+      }
 
-          }
+      for (Map.Entry<String, boolean[]> entry : signatureToChars.entrySet()) {
+        List<Integer> nextProduct = parseSignature(entry.getKey());
+        Integer nextUnifiedState = productToUnified.get(nextProduct);
+        if (nextUnifiedState == null) {
+          nextUnifiedState = unifiedToProduct.size();
+          productToUnified.put(nextProduct, nextUnifiedState);
+          unifiedToProduct.add(nextProduct);
+          queue.add(nextUnifiedState);
         }
 
+        String regex = maskToRegex(entry.getValue());
+        resultAutomato.addTransicao(unifiedState, regex, nextUnifiedState);
       }
     }
+
     return resultAutomato;
   }
 
-  private List<Character> getAcceptedCharactersByRegex(String regex) {
-    // Implementação para extrair os caracteres aceitos por um regex
-    final List<Character> acceptedChars = new ArrayList<>(); // Considerando caracteres ASCII
-    int index = 0;
-    for (char c = 0; c < 256; c++) {
-      if (String.valueOf(c).matches(regex)) {
-        acceptedChars.add(c);
+  private void annotateFinalState(Automato unified, int unifiedState, List<Integer> productState) {
+    for (int i = 0; i < automatos.size(); i++) {
+      Automato source = automatos.get(i);
+      int sourceState = productState.get(i); // TODO: fix this, productState should be a Map<Automato, List<Integer>>, since we can have multiple states from the same automaton in the product
+      if (sourceState != SINK_COMPONENT_STATE && source.estadosFinais.contains(sourceState)) {
+        unified.estadosFinais.add(unifiedState);
+        unified.addFinalStateTipo(unifiedState, source.tipo);
       }
     }
-    return acceptedChars;
   }
 
-  private List<List<Character>> getDisjointCharacterSets(List<List<Character>> characterSets) {
-    // Implementação para obter conjuntos disjuntos de caracteres
-    // Isso pode ser feito usando um algoritmo de união de intervalos ou similar
-    final List<List<Character>> disjointSets = new ArrayList<>();
-    disjointSets.add(getIntersection(characterSets));
-    for (int i = 1; i < characterSets.size(); i++) {
-
+  private int nextStateForChar(Automato automato, int currentState, char c) {
+    if (currentState == SINK_COMPONENT_STATE) {
+      return SINK_COMPONENT_STATE;
     }
 
-    return disjointSets;
-  }
-
-  private List<Character> getIntersection(List<List<Character>> sets) {
-    // Implementação para obter a interseção de conjuntos de caracteres
-    final List<Character> intersection = new ArrayList<>();
-    if (sets.isEmpty()) return intersection;
-    for (Character c : sets.getFirst()) {
-      boolean inAllSets = true;
-      for (List<Character> set : sets) {
-        if (!set.contains(c)) {
-          inAllSets = false;
-          break;
-        }
-      }
-      if (inAllSets) {
-        intersection.add(c);
-      }
+    Map<String, List<Integer>> transitions = automato.transicoes.get(currentState);
+    if (transitions == null) {
+      return SINK_COMPONENT_STATE;
     }
-    return intersection;
-  }
 
-  private List<Character> getUnion(List<List<Character>> sets) {
-    // Implementação para obter a união de conjuntos de caracteres
-    final List<Character> union = new ArrayList<>();
-    for (List<Character> set : sets) {
-      for (Character c : set) {
-        if (!union.contains(c)) {
-          union.add(c);
+    for (Map.Entry<String, List<Integer>> entry : transitions.entrySet()) {
+      String regex = entry.getKey();
+      if ("ε".equals(regex)) {
+        continue;
+      }
+      if (matchesRegex(c, regex)) {
+        List<Integer> destinos = entry.getValue();
+        if (destinos != null && !destinos.isEmpty()) {
+          return destinos.get(0);
         }
       }
     }
-    return union;
+
+    return SINK_COMPONENT_STATE;
   }
 
-  private List<Character> getDifference(List<Character> setA, List<Character> setB) {
-    // Implementação para obter a diferença entre dois conjuntos de caracteres
-    final List<Character> difference = new ArrayList<>();
-    for (Character c : setA) {
-      if (!setB.contains(c)) {
-        difference.add(c);
+  private boolean matchesRegex(char c, String regex) {
+    return String.valueOf(c).matches(regex);
+  }
+
+  private String buildSignature(List<Integer> productState) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < productState.size(); i++) {
+      if (i > 0) {
+        sb.append(',');
+      }
+      sb.append(productState.get(i));
+    }
+    return sb.toString();
+  }
+
+  private List<Integer> parseSignature(String signature) {
+    String[] parts = signature.split(",");
+    List<Integer> product = new ArrayList<>(parts.length);
+    for (String part : parts) {
+      product.add(Integer.parseInt(part));
+    }
+    return product;
+  }
+
+  private String maskToRegex(boolean[] mask) {
+    if (isFullMask(mask)) {
+      return "[\\s\\S]";
+    }
+
+    StringBuilder sb = new StringBuilder("[");
+    for (int i = 0; i < ASCII_SIZE; i++) {
+      if (mask[i]) {
+        appendEscapedCharClass(sb, (char) i);
       }
     }
-    return difference;
+    sb.append(']');
+    return sb.toString();
   }
 
+  private boolean isFullMask(boolean[] mask) {
+    for (boolean accepted : mask) {
+      if (!accepted) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private void appendEscapedCharClass(StringBuilder sb, char c) {
+    switch (c) {
+      case '\\':
+        sb.append("\\\\");
+        break;
+      case '[':
+      case ']':
+      case '^':
+      case '-':
+        sb.append('\\').append(c);
+        break;
+      case '\n':
+        sb.append("\\n");
+        break;
+      case '\r':
+        sb.append("\\r");
+        break;
+      case '\t':
+        sb.append("\\t");
+        break;
+      case '\f':
+        sb.append("\\f");
+        break;
+      default:
+        if (Character.isISOControl(c)) {
+          sb.append(String.format("\\x%02X", (int) c));
+        } else {
+          sb.append(c);
+        }
+    }
+  }
 }

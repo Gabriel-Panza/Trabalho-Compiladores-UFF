@@ -5,6 +5,8 @@ public class Automato {
     Set<Integer> estadosFinais = new HashSet<>();
     Map<Integer, Map<String, List<Integer>>> transicoes = new HashMap<>();
     Map<Integer, String> anotacaoDeEstados = new HashMap<>();
+    Map<Integer, List<String>> finalStateTipos = new HashMap<>();
+    Map<String, Integer> tipoPriority = new HashMap<>();
     String tipo;
 
     public Automato(String tipo) {
@@ -16,6 +18,35 @@ public class Automato {
                 .computeIfAbsent(origem, k -> new HashMap<>())
                 .computeIfAbsent(simbolo, k -> new ArrayList<>())
                 .add(destino);
+    }
+
+    void addFinalStateTipo(int estado, String tipo) {
+        List<String> tipos = finalStateTipos.computeIfAbsent(estado, k -> new ArrayList<>());
+        if (!tipos.contains(tipo)) {
+            tipos.add(tipo);
+        }
+    }
+
+    void setTipoPriority(String tipo, int priority) {
+        tipoPriority.put(tipo, priority);
+    }
+
+    String getPreferredTipoForState(int estado) {
+        List<String> tipos = finalStateTipos.get(estado);
+        if (tipos == null || tipos.isEmpty()) {
+            return null;
+        }
+
+        String preferred = tipos.get(0);
+        int preferredPriority = tipoPriority.getOrDefault(preferred, Integer.MAX_VALUE);
+        for (String current : tipos) {
+            int currentPriority = tipoPriority.getOrDefault(current, Integer.MAX_VALUE);
+            if (currentPriority < preferredPriority) {
+                preferred = current;
+                preferredPriority = currentPriority;
+            }
+        }
+        return preferred;
     }
 
     public Set<String> getAlfabeto() {

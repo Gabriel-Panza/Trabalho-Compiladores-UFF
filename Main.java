@@ -1,14 +1,16 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
         String[][] testCases = {
-                { "[0-9][0-9]*.[0-9][0-9]*", "FLOAT" },
-                { "ab|c", "STRING" },
-                { "[a-z]([a-z|0-9])*", "IDENTIFICADOR" },
-                { "while", "PALAVRA_RESERVADA" },
-                { "a(b|c)*", "TESTE_A" }
+                //{ "[0-9][0-9]*.[0-9][0-9]*", "FLOAT" },
+                //{ "ab|c", "STRING" },
+            {"if", "IF"},
+            { "[a-z]([a-z0-9])*", "IDENTIFICADOR" },
+            { "while", "PALAVRA_RESERVADA" },
+                //{ "a(b|c)*", "TESTE_A" }
         };
 
         List<RegexToPostfix.RegraLexica> regrasProntas = new ArrayList<>();
@@ -51,9 +53,33 @@ public class Main {
             System.out.println("Transições: " + afdMin.transicoes);
             System.out.println("===================================\n");
             System.out.println();
-            builder.addAutomato(afn);
+            builder.addAutomato(afdMin);
         }
-        //builder.buildFinalAutomato();
+        final Automato finalAutomaton = builder.buildFinalAutomato();
+
+        System.out.println("--- AUTÔMATO FINAL UNIFICADO ---");
+        System.out.println("Inicial: " + finalAutomaton.estadoInicial);
+        System.out.println("Finais: " + finalAutomaton.estadosFinais);
+        System.out.println("Transições: " + finalAutomaton.transicoes);
+        System.out.println("Anotações de Estados: " + finalAutomaton.anotacaoDeEstados);
+        System.out.println("Tipos de Estados Finais: " + finalAutomaton.finalStateTipos);
+        System.out.println("Prioridade de Tipos: " + finalAutomaton.tipoPriority);
+        System.out.println("====================================\n");
+        for (int estado : finalAutomaton.getTodosEstados()) {
+            if (estado == 1) {
+                continue;
+            }
+            for (var transition : finalAutomaton.transicoes.getOrDefault(estado, Map.of()).entrySet()) {
+                String simbolo = transition.getKey();
+                List<Integer> destinos = transition.getValue();
+                for (int destino : destinos) {
+                    if (destino == 1) {
+                        continue;
+                    }
+                    System.out.println("Transição: " + estado + " --" + simbolo + "--> " + destino);
+                }
+            }
+        }
 
 
     }
