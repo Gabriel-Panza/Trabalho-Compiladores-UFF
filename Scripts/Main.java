@@ -1,6 +1,8 @@
 package Scripts;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
@@ -23,6 +25,9 @@ public class Main {
         List<RegexToPostfix.RegraLexica> regrasProntas = new ArrayList<>();
         System.out.println("\nFASE DE TOKENIZAÇÃO E POSTFIX:");
         System.out.println("----------------------------------------------------------------");
+
+
+        final UnifiedAutomatonBuilder builder = new UnifiedAutomatonBuilder();
         for (String[] regra : regrasRacket) {
             String regex = regra[0];
             String tipo = regra[1];
@@ -54,8 +59,40 @@ public class Main {
             printStatus("AFD MINIMIZADO", afdMin);
             
             System.out.println("────────────────────────────────────────────────────────────────");
+            builder.addAutomato(afdMin);
+        }
+
+        final Automato finalAutomaton = builder.buildFinalAutomato();
+
+        final String arquivoSaidaJson = "out/automato-final.json";
+        final AutomatoJsonRepository repository = new AutomatoJsonRepository();
+        try {
+            repository.salvar(finalAutomaton, arquivoSaidaJson);
+            System.out.println("Autômato salvo em JSON: " + arquivoSaidaJson);
+
+            Automato automatoCarregado = repository.carregar(arquivoSaidaJson);
+            System.out.println("Autômato carregado do JSON. Finais: " + automatoCarregado.estadosFinais);
+            System.out.println("Tipos finais carregados: " + automatoCarregado.finalStateTipos);
+        } catch (Exception e) {
+            throw new RuntimeException("Falha ao salvar/carregar o autômato em JSON", e);
+        }
+
+        System.out.println("--- AUTÔMATO FINAL UNIFICADO ---");
+        System.out.println("Inicial: " + finalAutomaton.estadoInicial);
+        System.out.println("Finais: " + new LinkedHashSet<>(finalAutomaton.estadosFinais));
+        System.out.println("Tipos de Estados Finais: " + finalAutomaton.finalStateTipos);
+        for (int estado : finalAutomaton.getTodosEstados()) {
+            for (var transition : finalAutomaton.transicoes.getOrDefault(estado, Map.of()).entrySet()) {
+                String simbolo = transition.getKey();
+                List<Integer> destinos = transition.getValue();
+                for (int destino : destinos) {
+                    System.out.println("Transição: " + estado + " --" + simbolo + "--> " + destino);
+                }
+            }
         }
     }
+
+
 
     private static void printStatus(String fase, Automato auto) {
         System.out.printf("   %-16s | Início: %-2d | Finais: %-12s | Transições: %d\n", 

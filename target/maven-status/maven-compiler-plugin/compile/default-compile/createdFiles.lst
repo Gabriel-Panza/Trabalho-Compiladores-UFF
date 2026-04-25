@@ -1,0 +1,15 @@
+RegexToPostfix$RegraLexica.class
+ThompsonBuilder.class
+RegexToPostfix$TokenType.class
+Scanner.class
+Automato.class
+RegexToPostfix.class
+Scanner$Match.class
+UnifiedAutomatonBuilder.class
+RegexToPostfix$Token.class
+AutomatoReconhecimentoDto.class
+DfaMinimizer.class
+NfaToDfaConverter.class
+Main.class
+AutomatoJsonRepository.class
+UnifiedAutomatonBuilder$AutomatoStatePointer.class
