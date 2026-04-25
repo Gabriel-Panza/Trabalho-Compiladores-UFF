@@ -19,27 +19,12 @@ Para transformar regras textuais em um reconhecedor de tokens de alta performanc
 * **Parser de Descida Recursiva (Top-Down)**: A análise sintática é feita através de uma gramática **LL(1)**. O parser consome a lista de tokens e reconstrói a hierarquia de parênteses e expressões da linguagem Racket, gerando uma AST visual.
 * **Sincronização de Erros**: O sistema é capaz de se recuperar de falhas léxicas ou sintáticas, reportando o erro com o contexto da linha e continuando a análise das expressões subsequentes.
 
----
 
-O projeto agora inclui persistência do autômato final em JSON com Jackson.
+### Observações adicionais
 
-```bash
-mvn compile
-mvn exec:java -Dexec.mainClass=Main
-```
-
-Ao executar o `Main`, o autômato final é salvo em `out/automato-final.json` e carregado novamente para validação.
-
-## Scanner via JSON
+O projeto agora inclui persistência do autômato final em JSON com Jackson. Ao executar o `Main`, o autômato final é salvo em `out/automato-final.json` e carregado novamente para validação.
 
 Tambem ha uma classe `Scanner` que le um automato salvo em JSON e um arquivo texto, substituindo cada lexema reconhecido pelo tipo do estado final correspondente.
-
-```bash
-mvn compile
-mvn exec:java -Dexec.mainClass=Scanner -Dexec.args="caminho/entrada.txt caminho/saida.txt"
-```
-
-O segundo argumento (`caminho/saida.txt`) e opcional. Sem ele, a saida padrao fica em `out/<nome-da-entrada>.scanned.txt`.
 
 
 ## Como Executar
@@ -47,6 +32,7 @@ O segundo argumento (`caminho/saida.txt`) e opcional. Sem ele, a saida padrao fi
 O projeto utiliza um **Makefile** para simplificar o ciclo de vida do desenvolvimento. Certifique-se de ter o JDK 17 ou superior instalado.
 
 ### Compilação
+
 Para compilar todos os módulos do projeto e gerar os arquivos binários:
 ```bash
 make
@@ -57,4 +43,9 @@ Para iniciar o compilador e processar o arquivo de testes padrão:
 ```bash
 make run
 ```
-*O programa lerá o conteúdo, exibirá o log de análise léxica, a lista de tokens gerados e, por fim, as árvores sintáticas resultantes.*
+
+### Limpeza
+Caso precise limpar os arquivos makefile e recriar eles:
+```bash
+make clean
+```
