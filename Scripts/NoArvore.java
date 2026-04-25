@@ -1,0 +1,38 @@
+package Scripts;
+
+import java.util.*;
+
+public class NoArvore {
+    String simbolo;
+    String lexema;
+    List<NoArvore> filhos;
+    int linha;
+    int coluna;
+
+    public NoArvore(String simbolo) {
+        this.simbolo = simbolo;
+        this.filhos = new ArrayList<>();
+    }
+
+    public void adicionarFilho(NoArvore filho) {
+        filhos.add(filho);
+    }
+
+    public void imprimir(String prefixo, boolean ultimo) {
+        System.out.println(prefixo + (ultimo ? "`-- " : "|-- ") + formatarNo());
+        String novoPrefixo = prefixo + (ultimo ? "    " : "|   ");
+        for (int i = 0; i < filhos.size(); i++) {
+            filhos.get(i).imprimir(novoPrefixo, i == filhos.size() - 1);
+        }
+    }
+
+    private String formatarNo() {
+        if (lexema != null) {
+            return simbolo + " \"" + lexema + "\"";
+        }
+        if (filhos.isEmpty()) {
+            return simbolo + " (vazio)";
+        }
+        return simbolo;
+    }
+}
