@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +9,7 @@ public class Main {
                 //{ "[0-9][0-9]*.[0-9][0-9]*", "FLOAT" },
                 //{ "ab|c", "STRING" },
             {"if", "IF"},
+            {"ifi", "IFI"},
             { "[a-z]([a-z0-9])*", "IDENTIFICADOR" },
             { "while", "PALAVRA_RESERVADA" },
                 //{ "a(b|c)*", "TESTE_A" }
@@ -57,25 +59,28 @@ public class Main {
         }
         final Automato finalAutomaton = builder.buildFinalAutomato();
 
+        final String arquivoSaidaJson = "out/automato-final.json";
+        final AutomatoJsonRepository repository = new AutomatoJsonRepository();
+        try {
+            repository.salvar(finalAutomaton, arquivoSaidaJson);
+            System.out.println("Autômato salvo em JSON: " + arquivoSaidaJson);
+
+            Automato automatoCarregado = repository.carregar(arquivoSaidaJson);
+            System.out.println("Autômato carregado do JSON. Finais: " + automatoCarregado.estadosFinais);
+            System.out.println("Tipos finais carregados: " + automatoCarregado.finalStateTipos);
+        } catch (Exception e) {
+            throw new RuntimeException("Falha ao salvar/carregar o autômato em JSON", e);
+        }
+
         System.out.println("--- AUTÔMATO FINAL UNIFICADO ---");
         System.out.println("Inicial: " + finalAutomaton.estadoInicial);
-        System.out.println("Finais: " + finalAutomaton.estadosFinais);
-        System.out.println("Transições: " + finalAutomaton.transicoes);
-        System.out.println("Anotações de Estados: " + finalAutomaton.anotacaoDeEstados);
+        System.out.println("Finais: " + new LinkedHashSet<>(finalAutomaton.estadosFinais));
         System.out.println("Tipos de Estados Finais: " + finalAutomaton.finalStateTipos);
-        System.out.println("Prioridade de Tipos: " + finalAutomaton.tipoPriority);
-        System.out.println("====================================\n");
         for (int estado : finalAutomaton.getTodosEstados()) {
-            if (estado == 1) {
-                continue;
-            }
             for (var transition : finalAutomaton.transicoes.getOrDefault(estado, Map.of()).entrySet()) {
                 String simbolo = transition.getKey();
                 List<Integer> destinos = transition.getValue();
                 for (int destino : destinos) {
-                    if (destino == 1) {
-                        continue;
-                    }
                     System.out.println("Transição: " + estado + " --" + simbolo + "--> " + destino);
                 }
             }

@@ -19,6 +19,23 @@ O gerador segue rigorosamente o fluxo clássico de construção de scanners:
 
 ## Como utilizar
 
-```java
-run main.java
+O projeto agora inclui persistência do autômato final em JSON com Jackson.
+
+```bash
+mvn compile
+mvn exec:java -Dexec.mainClass=Main
 ```
+
+Ao executar o `Main`, o autômato final é salvo em `out/automato-final.json` e carregado novamente para validação.
+
+## Scanner via JSON
+
+Tambem ha uma classe `Scanner` que le um automato salvo em JSON e um arquivo texto, substituindo cada lexema reconhecido pelo tipo do estado final correspondente.
+
+```bash
+mvn compile
+mvn exec:java -Dexec.mainClass=Scanner -Dexec.args="out/automato-final.json caminho/entrada.txt caminho/saida.txt"
+```
+
+O terceiro argumento (`caminho/saida.txt`) e opcional. Sem ele, a saida padrao fica em `out/<nome-da-entrada>.scanned.txt`.
+

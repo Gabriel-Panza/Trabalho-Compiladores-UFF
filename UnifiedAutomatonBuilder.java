@@ -1,6 +1,6 @@
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,9 +25,17 @@ class UnifiedAutomatonBuilder {
       return resultAutomato;
     }
 
-    // Priority is determined by the order of addition
-    for (int i = 0; i < automatos.size(); i++) {
-      resultAutomato.setTipoPriority(automatos.get(i).tipo, i);
+    // Prioridade base segue ordem de adicao, mas tokens de identificador ficam por ultimo.
+    int priority = 0;
+    for (Automato automato : automatos) {
+      if (!isIdentifierTipo(automato.tipo)) {
+        resultAutomato.setTipoPriority(automato.tipo, priority++);
+      }
+    }
+    for (Automato automato : automatos) {
+      if (isIdentifierTipo(automato.tipo)) {
+        resultAutomato.setTipoPriority(automato.tipo, priority++);
+      }
     }
 
     // List with initial states of each automaton
@@ -54,7 +62,7 @@ class UnifiedAutomatonBuilder {
 
       annotateFinalState(resultAutomato, unifiedState, productState);
 
-      Map<String, boolean[]> signatureToChars = new LinkedHashMap<>();
+      Map<List<Integer>, boolean[]> signatureToChars = new LinkedHashMap<>();
       for (int ascii = 0; ascii < ASCII_SIZE; ascii++) {
         List<Integer> nextProduct = new ArrayList<>(automatos.size());
         for (int i = 0; i < automatos.size(); i++) {
@@ -62,13 +70,17 @@ class UnifiedAutomatonBuilder {
           nextProduct.add(next);
         }
 
-        String signature = buildSignature(nextProduct);
-        boolean[] mask = signatureToChars.computeIfAbsent(signature, k -> new boolean[ASCII_SIZE]);
+        // Nao materializa transicao para produto totalmente sumidouro.
+        if (isSinkProduct(nextProduct)) {
+          continue;
+        }
+
+        boolean[] mask = signatureToChars.computeIfAbsent(nextProduct, k -> new boolean[ASCII_SIZE]);
         mask[ascii] = true;
       }
 
-      for (Map.Entry<String, boolean[]> entry : signatureToChars.entrySet()) {
-        List<Integer> nextProduct = parseSignature(entry.getKey());
+      for (Map.Entry<List<Integer>, boolean[]> entry : signatureToChars.entrySet()) {
+        List<Integer> nextProduct = entry.getKey();
         Integer nextUnifiedState = productToUnified.get(nextProduct);
         if (nextUnifiedState == null) {
           nextUnifiedState = unifiedToProduct.size();
@@ -86,14 +98,28 @@ class UnifiedAutomatonBuilder {
   }
 
   private void annotateFinalState(Automato unified, int unifiedState, List<Integer> productState) {
+    String preferredActiveTipo = null;
+    String preferredFinalTipo = null;
+
     for (int i = 0; i < automatos.size(); i++) {
       Automato source = automatos.get(i);
-      int sourceState = productState.get(i); // TODO: fix this, productState should be a Map<Automato, List<Integer>>, since we can have multiple states from the same automaton in the product
-      if (sourceState != SINK_COMPONENT_STATE && source.estadosFinais.contains(sourceState)) {
-        unified.estadosFinais.add(unifiedState);
-        unified.addFinalStateTipo(unifiedState, source.tipo);
+      int sourceState = productState.get(i);
+      if (sourceState == SINK_COMPONENT_STATE) {
+        continue;
+      }
+
+      preferredActiveTipo = higherPriorityTipo(unified, preferredActiveTipo, source.tipo);
+      if (source.estadosFinais.contains(sourceState)) {
+        preferredFinalTipo = higherPriorityTipo(unified, preferredFinalTipo, source.tipo);
       }
     }
+
+    if (preferredFinalTipo == null || !preferredFinalTipo.equals(preferredActiveTipo)) {
+      return;
+    }
+
+    unified.estadosFinais.add(unifiedState);
+    unified.finalStateTipos.put(unifiedState, new ArrayList<String>(Collections.singletonList(preferredFinalTipo)));
   }
 
   private int nextStateForChar(Automato automato, int currentState, char c) {
@@ -126,24 +152,27 @@ class UnifiedAutomatonBuilder {
     return String.valueOf(c).matches(regex);
   }
 
-  private String buildSignature(List<Integer> productState) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < productState.size(); i++) {
-      if (i > 0) {
-        sb.append(',');
+  private boolean isSinkProduct(List<Integer> productState) {
+    for (int state : productState) {
+      if (state != SINK_COMPONENT_STATE) {
+        return false;
       }
-      sb.append(productState.get(i));
     }
-    return sb.toString();
+    return true;
   }
 
-  private List<Integer> parseSignature(String signature) {
-    String[] parts = signature.split(",");
-    List<Integer> product = new ArrayList<>(parts.length);
-    for (String part : parts) {
-      product.add(Integer.parseInt(part));
+  private String higherPriorityTipo(Automato unified, String current, String candidate) {
+    if (current == null) {
+      return candidate;
     }
-    return product;
+
+    int currentPriority = unified.tipoPriority.getOrDefault(current, Integer.MAX_VALUE);
+    int candidatePriority = unified.tipoPriority.getOrDefault(candidate, Integer.MAX_VALUE);
+    return candidatePriority < currentPriority ? candidate : current;
+  }
+
+  private boolean isIdentifierTipo(String tipo) {
+    return tipo != null && tipo.toUpperCase().contains("IDENT");
   }
 
   private String maskToRegex(boolean[] mask) {
