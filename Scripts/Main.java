@@ -7,6 +7,9 @@ import java.util.Map;
 public class Main {
     public static void main(String[] args) {
         String[][] regrasRacket = {
+            { "[ \\t\\n\\r]+", "WHITESPACE" },
+            { ";[^\\n]*", "COMMENT" },
+            { "'", "QUOTE" },
             { "\\(", "LPAREN" },
             { "\\)", "RPAREN" },
             { "define", "KW_DEFINE" },
@@ -15,14 +18,16 @@ public class Main {
             { "#t|#f", "BOOLEAN" },
             { "[a-zA-Z!$%&*/:<=>?^_~][a-zA-Z0-9!$%&*/:<=>?^_~+-.@]*", "IDENTIFIER" },
             { "[0-9]+", "INTEGER" },
-            { "[0-9]+.[0-9]*", "FLOAT" }
+            { "[0-9]+.[0-9]*", "FLOAT" },
+            { "\"[^\"]*\"", "STRING" }
         };
 
         System.out.println("================================================================");
-        System.out.println("GERADOR DE SCANNERS - RACKET EDITION");
+        System.out.println("GERADOR DE SCANNERS - PARSER P/ RACKET");
         System.out.println("================================================================");
 
         List<RegexToPostfix.RegraLexica> regrasProntas = new ArrayList<>();
+        System.out.println("----------------------------------------------------------------");
         System.out.println("\nFASE DE TOKENIZAÇÃO E POSTFIX:");
         System.out.println("----------------------------------------------------------------");
 
@@ -44,7 +49,7 @@ public class Main {
         System.out.println("----------------------------------------------------------------");
 
         for (RegexToPostfix.RegraLexica regra : regrasProntas) {
-            System.out.println("\n💎 TOKEN: " + regra.tipo());
+            System.out.println("\nTOKEN: " + regra.tipo());
             
             // AFND (Thompson)
             Automato afn = ThompsonBuilder.build(regra.postfix(), regra.tipo());
