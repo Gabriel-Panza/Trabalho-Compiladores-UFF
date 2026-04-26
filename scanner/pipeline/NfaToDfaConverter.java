@@ -20,7 +20,7 @@ import java.util.*;
 public class NfaToDfaConverter {
 
     public static Automato convert(Automato afn) {
-        Automato afd = new Automato(afn.tipo + "_AFD");
+        Automato afd = new Automato(afn.tipo);
         Set<String> alfabeto = afn.getAlfabeto();
 
         Map<Set<Integer>, Integer> dfaStatesMap = new HashMap<>();
