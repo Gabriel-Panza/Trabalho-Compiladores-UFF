@@ -46,24 +46,58 @@ public class Scanner {
         }
     }
 
-    static String replaceRecognizedLexemesWithTipo(Automato automato, String input) {
+    public static String replaceRecognizedLexemesWithTipo(Automato automato, String input) {
         StringBuilder result = new StringBuilder();
+
+        result.append("========================================\n");
+        result.append("TOKENS RECONHECIDOS\n");
+        result.append("========================================\n");
+
         int index = 0;
+        int contador = 1;
 
         while (index < input.length()) {
             Match bestMatch = longestMatchAt(automato, input, index);
+
             if (bestMatch == null) {
-                //result.append(input.charAt(index);
-                result.append(LEXICAL_ERROR_MARKER);
+                String lexemaErro = String.valueOf(input.charAt(index));
+
+                result.append(String.format(
+                    "%03d  %-20s  lexema: \"%s\"%n",
+                    contador,
+                    LEXICAL_ERROR_MARKER,
+                    formatarLexema(lexemaErro)
+                ));
+
                 index++;
+                contador++;
                 continue;
             }
 
-            result.append(bestMatch.tipo);
+            String lexemaReconhecido = input.substring(index, bestMatch.endExclusive);
+
+            result.append(String.format(
+                "%03d  %-20s  lexema: \"%s\"%n",
+                contador,
+                bestMatch.tipo,
+                formatarLexema(lexemaReconhecido)
+            ));
+
             index = bestMatch.endExclusive;
+            contador++;
         }
 
+        result.append("========================================\n");
+
         return result.toString();
+    }
+
+    private static String formatarLexema(String lexema) {
+        return lexema
+            .replace("\\", "\\\\")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
     }
 
     private static Match longestMatchAt(Automato automato, String input, int start) {

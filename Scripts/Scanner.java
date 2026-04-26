@@ -1,132 +1,3 @@
-package scanner;
-
-import scanner.model.Automato;
-import scanner.persistence.AutomatoJsonRepository;
-import scanner.pipeline.RegexToPostfix;
-import scanner.pipeline.ThompsonBuilder;
-import scanner.pipeline.NfaToDfaConverter;
-import scanner.pipeline.DfaMinimizer;
-import scanner.pipeline.UnifiedAutomatonBuilder;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-
-public class Main {
-    public static void main(String[] args) {
-        String[][] regrasRacket = {
-            { "[ \\t\\n\\r]+", "WHITESPACE" },
-            { ";[^\\n]*", "COMMENT" },
-            { "'", "QUOTE" },
-            { "\\(", "LPAREN" },
-            { "\\)", "RPAREN" },
-            { "define", "KW_DEFINE" },
-            { "lambda", "KW_LAMBDA" },
-            { "if", "KW_IF" },
-            { "#t|#f", "BOOLEAN" },
-            { "[a-zA-Z!$%&*/:<=>?^_~+\\-][a-zA-Z0-9!$%&*/:<=>?^_~+\\-.@]*", "IDENTIFIER" },
-            { "[0-9]+", "INTEGER" },
-            { "[0-9]+\\.[0-9]*", "FLOAT" },
-            { "\"[^\"]*\"", "STRING" }
-        };
-
-        System.out.println("================================================================");
-        System.out.println("GERADOR DE SCANNERS - PARSER P/ RACKET");
-        System.out.println("================================================================");
-
-        List<RegexToPostfix.RegraLexica> regrasProntas = new ArrayList<>();
-        System.out.println("----------------------------------------------------------------");
-        System.out.println("\nFASE DE TOKENIZAÇÃO E POSTFIX:");
-        System.out.println("----------------------------------------------------------------");
-
-
-        final UnifiedAutomatonBuilder builder = new UnifiedAutomatonBuilder();
-        for (String[] regra : regrasRacket) {
-            String regex = regra[0];
-            String tipo = regra[1];
-
-            List<String> postfix = RegexToPostfix.convertPostfix(regex);
-            RegexToPostfix.RegraLexica regraLexica = new RegexToPostfix.RegraLexica(tipo, postfix);
-            regrasProntas.add(regraLexica);
-
-            System.out.printf("  %-15s -> %s\n", "[" + tipo + "]", regex);
-            System.out.printf("  %-15s    Postfix: %s\n\n", "", postfix);
-        }
-        System.out.println("----------------------------------------------------------------");
-        System.out.println("CONSTRUÇÃO E OTIMIZAÇÃO DE AUTÔMATOS:");
-        System.out.println("----------------------------------------------------------------");
-
-        for (RegexToPostfix.RegraLexica regra : regrasProntas) {
-            System.out.println("\nTOKEN: " + regra.tipo());
-            
-            // AFND (Thompson)
-            Automato afn = ThompsonBuilder.build(regra.postfix(), regra.tipo());
-            printStatus("AFN", afn);
-
-            // AFD (Subset Construction)
-            Automato afd = NfaToDfaConverter.convert(afn);
-            printStatus("AFD", afd);
-
-            // AFD Miniminizado (Hopcroft)
-            Automato afdMin = DfaMinimizer.minimize(afd);
-            printStatus("AFD MINIMIZADO", afdMin);
-            
-            System.out.println("────────────────────────────────────────────────────────────────");
-            builder.addAutomato(afdMin);
-        }
-
-        final Automato finalAutomaton = builder.buildFinalAutomato();
-        
-        System.out.println("--- AUTÔMATO FINAL UNIFICADO ---");
-        System.out.println("Inicial: " + finalAutomaton.estadoInicial);
-        System.out.println("Finais: " + new LinkedHashSet<>(finalAutomaton.estadosFinais));
-        System.out.println("Tipos de Estados Finais: " + finalAutomaton.finalStateTipos);
-        for (int estado : finalAutomaton.getTodosEstados()) {
-            for (var transition : finalAutomaton.transicoes.getOrDefault(estado, Map.of()).entrySet()) {
-                String simbolo = transition.getKey();
-                List<Integer> destinos = transition.getValue();
-                for (int destino : destinos) {
-                    System.out.println("Transição: " + estado + " --" + simbolo + "--> " + destino);
-                }
-            }
-        }
-        
-        final String arquivoSaidaJson = "out/automato-final.json";
-        final AutomatoJsonRepository repository = new AutomatoJsonRepository();
-        try {
-            repository.salvar(finalAutomaton, arquivoSaidaJson);
-            Files.writeString(Paths.get("Scripts/Scanner.java"), scannerString.replace("$AUTOMATO_FILE$", "\"" + arquivoSaidaJson + "\""), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            throw new RuntimeException("Falha ao salvar/carregar o autômato em JSON", e);
-        }
-    }
-
-    private static void printStatus(String fase, Automato auto) {
-        System.out.printf("   %-16s | Início: %-2d | Finais: %-12s | Transições: %d\n", 
-            fase, 
-            auto.estadoInicial, 
-            auto.estadosFinais,
-            countTransitions(auto));
-    }
-
-    private static int countTransitions(Automato auto) {
-        int count = 0;
-        for (var entry : auto.transicoes.values()) {
-            for (var list : entry.values()) {
-                count += list.size();
-            }
-        }
-        return count;
-    }
-
-    private static final String scannerString = """
 package Scripts;
 
 import java.io.IOException;
@@ -147,7 +18,7 @@ import java.util.Map;
                 System.exit(1);
             }
 
-            Path automatoPath = Paths.get($AUTOMATO_FILE$);
+            Path automatoPath = Paths.get("out/automato-final.json");
             Path inputPath = Paths.get(args[0]);
             Path outputPath = args.length == 2 ? Paths.get(args[1]) : defaultOutputPath(inputPath);
 
@@ -279,5 +150,3 @@ import java.util.Map;
             }
         }
     }
-    """;
-}

@@ -5,6 +5,15 @@ import parser.model.ErroSintatico;
 import parser.model.ResultadoParser;
 import parser.model.TokenLido;
 
+import scanner.Scanner;
+import scanner.model.Automato;
+import scanner.persistence.AutomatoJsonRepository;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class ParserMain {
@@ -49,6 +58,56 @@ public class ParserMain {
         System.out.println("TESTE 4: (lambda (x y) (+ x y))  -  programa valido");
         System.out.println("================================================================");
         executar(parser, criarTokensMock4());
+
+        System.out.println("\n================================================================");
+        System.out.println("TESTES TXT:");
+        System.out.println("================================================================");
+        String[] arquivosDeTeste = {
+            "casos_teste/teste_simples.txt",
+            "casos_teste/teste_fibonacci.txt",
+            "casos_teste/teste_erro.txt"
+        };
+
+        final AutomatoJsonRepository repository = new AutomatoJsonRepository();
+        final String arquivoSaidaJson = "out/automato-final.json";
+        
+        try {
+            Automato automatoCarregado = repository.carregar(arquivoSaidaJson);
+            for (String arquivoEntrada : arquivosDeTeste) {
+                processarArquivoComScanner(automatoCarregado, arquivoEntrada);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Falha ao salvar o autômato em JSON", e);
+        }
+    }
+
+    private static void processarArquivoComScanner(Automato automato, String caminhoEntrada) {
+        try {
+            Path inputPath = Paths.get(caminhoEntrada);
+
+            String input = Files.readString(inputPath, StandardCharsets.UTF_8);
+
+            String resultado = Scanner.replaceRecognizedLexemesWithTipo(automato, input);
+
+            String nomeArquivo = inputPath.getFileName().toString();
+            String nomeBase = nomeArquivo.replaceFirst("\\.txt$", "");
+
+            Path outputPath = Paths.get("out", nomeBase + ".scanned.txt");
+
+            Files.createDirectories(outputPath.getParent());
+            Files.writeString(outputPath, resultado, StandardCharsets.UTF_8);
+
+            System.out.println();
+            System.out.println("================================================================");
+            System.out.println("ARQUIVO PROCESSADO: " + caminhoEntrada);
+            System.out.println("SAÍDA GERADA EM: " + outputPath);
+            System.out.println("----------------------------------------------------------------");
+            System.out.println(resultado);
+            System.out.println("================================================================");
+
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao processar o arquivo: " + caminhoEntrada, e);
+        }
     }
 
     private static void executar(Parser parser, List<TokenLido> tokens) {
