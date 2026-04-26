@@ -26,3 +26,6 @@ replay_pid*
 
 # Java compilation output:
 out/
+
+# Generated Scanner file:
+Scripts/Scanner.java
