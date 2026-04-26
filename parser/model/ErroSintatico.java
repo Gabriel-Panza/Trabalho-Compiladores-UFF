@@ -1,11 +1,11 @@
-package Scripts;
+package parser.model;
 
 public class ErroSintatico {
-    String mensagem;
-    int linha;
-    int coluna;
-    String tokenEncontrado;
-    String esperado;
+    public String mensagem;
+    public int linha;
+    public int coluna;
+    public String tokenEncontrado;
+    public String esperado;
 
     public ErroSintatico(String mensagem, int linha, int coluna,
                          String tokenEncontrado, String esperado) {

@@ -1,10 +1,10 @@
+.PHONY: all scanner parser run-scanner run-parser run-scanner-file clean
+
 ifeq ($(OS),Windows_NT)
-    # Configurações para Windows Nativo
     SEP = ;
     RM = del /Q /S
     FIXPATH = $(subst /,\,$(1))
 else
-    # Configurações para Linux, Mac e WSL
     SEP = :
     RM = rm -f
     FIXPATH = $(1)
@@ -13,11 +13,28 @@ endif
 JAR_DIR = lib
 CP = .$(SEP)$(JAR_DIR)/jackson-databind-2.15.2.jar$(SEP)$(JAR_DIR)/jackson-core-2.15.2.jar$(SEP)$(JAR_DIR)/jackson-annotations-2.15.2.jar
 
-all:
-	javac -cp "$(CP)" Scripts/*.java
+all: scanner parser
 
-run:
-	java -cp "$(CP)" Scripts/Main
+scanner:
+	javac -cp "$(CP)" scanner/model/*.java scanner/persistence/*.java scanner/pipeline/*.java scanner/*.java
+
+parser:
+	javac -cp "$(CP)" parser/model/*.java parser/grammar/*.java parser/*.java
+
+run-scanner:
+	java -cp "$(CP)" scanner.Main
+
+run-parser:
+	java -cp "$(CP)" parser.ParserMain
+
+run-scanner-file:
+	java -cp "$(CP)" scanner.Scanner $(FILE)
 
 clean:
-	$(RM) $(call FIXPATH,Scripts/*.class)
+	$(RM) $(call FIXPATH,scanner/model/*.class)
+	$(RM) $(call FIXPATH,scanner/persistence/*.class)
+	$(RM) $(call FIXPATH,scanner/pipeline/*.class)
+	$(RM) $(call FIXPATH,scanner/*.class)
+	$(RM) $(call FIXPATH,parser/model/*.class)
+	$(RM) $(call FIXPATH,parser/grammar/*.class)
+	$(RM) $(call FIXPATH,parser/*.class)

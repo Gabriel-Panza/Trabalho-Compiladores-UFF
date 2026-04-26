@@ -1,4 +1,6 @@
-package Scripts;
+package scanner.pipeline;
+
+import scanner.model.Automato;
 
 /*
 * Lógica Implementada:
@@ -60,7 +62,7 @@ Responsável por copiar todas as transições de um autômato para outro.
 import java.util.List;
 import java.util.Stack;
 
-class ThompsonBuilder {
+public class ThompsonBuilder {
     private static int contadorEstados = 0;
 
     private static int novoEstado() {

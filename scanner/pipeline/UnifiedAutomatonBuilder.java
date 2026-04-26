@@ -1,4 +1,6 @@
-package Scripts;
+package scanner.pipeline;
+
+import scanner.model.Automato;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -8,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-class UnifiedAutomatonBuilder {
+public class UnifiedAutomatonBuilder {
   final List<Automato> automatos = new ArrayList<Automato>();
   private static final int ASCII_SIZE = 256;
   private static final int SINK_COMPONENT_STATE = -1;

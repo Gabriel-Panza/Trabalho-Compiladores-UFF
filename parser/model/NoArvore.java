@@ -1,13 +1,13 @@
-package Scripts;
+package parser.model;
 
 import java.util.*;
 
 public class NoArvore {
-    String simbolo;
-    String lexema;
-    List<NoArvore> filhos;
-    int linha;
-    int coluna;
+    public String simbolo;
+    public String lexema;
+    public List<NoArvore> filhos;
+    public int linha;
+    public int coluna;
 
     public NoArvore(String simbolo) {
         this.simbolo = simbolo;

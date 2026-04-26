@@ -1,4 +1,6 @@
-package Scripts;
+package scanner.pipeline;
+
+import scanner.model.Automato;
 
 /**
  * CONVERSOR DE AFN PARA AFD (ALGORITMO DE CONSTRUÇÃO DE SUBCONJUNTOS)

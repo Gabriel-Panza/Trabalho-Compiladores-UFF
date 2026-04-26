@@ -1,13 +1,13 @@
-package Scripts;
+package parser.grammar;
 
 import java.util.*;
 
 public class RegraGramatical {
-    String naoTerminal;
-    List<String> producao;
-    Set<String> first;
-    Set<String> follow;
-    boolean anulavel;
+    public String naoTerminal;
+    public List<String> producao;
+    public Set<String> first;
+    public Set<String> follow;
+    public boolean anulavel;
 
     public RegraGramatical(String naoTerminal, List<String> producao,
                            Set<String> first, Set<String> follow, boolean anulavel) {

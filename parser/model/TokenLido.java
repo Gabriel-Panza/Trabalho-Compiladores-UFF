@@ -1,10 +1,10 @@
-package Scripts;
+package parser.model;
 
 public class TokenLido {
-    String tipo;
-    String lexema;
-    int linha;
-    int coluna;
+    public String tipo;
+    public String lexema;
+    public int linha;
+    public int coluna;
 
     public TokenLido(String tipo, String lexema, int linha, int coluna) {
         this.tipo = tipo;

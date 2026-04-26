@@ -1,4 +1,9 @@
-package Scripts;
+package parser;
+
+import parser.grammar.RegraGramatical;
+import parser.model.ErroSintatico;
+import parser.model.ResultadoParser;
+import parser.model.TokenLido;
 
 import java.util.*;
 

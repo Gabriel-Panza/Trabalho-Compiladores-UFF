@@ -1,4 +1,13 @@
-package Scripts;
+package scanner;
+
+import scanner.model.Automato;
+import scanner.persistence.AutomatoJsonRepository;
+import scanner.pipeline.RegexToPostfix;
+import scanner.pipeline.ThompsonBuilder;
+import scanner.pipeline.NfaToDfaConverter;
+import scanner.pipeline.DfaMinimizer;
+import scanner.pipeline.UnifiedAutomatonBuilder;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;

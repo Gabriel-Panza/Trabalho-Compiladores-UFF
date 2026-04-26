@@ -1,4 +1,7 @@
-package Scripts;
+package scanner.persistence;
+
+import scanner.model.Automato;
+import scanner.model.AutomatoReconhecimentoDto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

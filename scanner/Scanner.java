@@ -1,4 +1,7 @@
-package Scripts;
+package scanner;
+
+import scanner.model.Automato;
+import scanner.persistence.AutomatoJsonRepository;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

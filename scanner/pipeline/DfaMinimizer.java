@@ -1,4 +1,6 @@
-package Scripts;
+package scanner.pipeline;
+
+import scanner.model.Automato;
 
 /**
  * MINIMIZADOR DE AFD (ALGORITMO DE PARTICIONAMENTO / HOPCROFT)

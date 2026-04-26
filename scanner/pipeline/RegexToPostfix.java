@@ -1,4 +1,4 @@
-package Scripts;
+package scanner.pipeline;
 
 /* 
  * LOGICA E ESPECIFICAÇÕES IMPLEMENTADAS:

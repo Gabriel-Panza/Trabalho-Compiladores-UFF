@@ -1,10 +1,10 @@
-package Scripts;
+package parser.grammar;
 
 import java.util.*;
 
 public class TabelaParser {
-    Map<String, Map<String, List<String>>> tabela = new HashMap<>();
-    List<String> conflitos = new ArrayList<>();
+    public Map<String, Map<String, List<String>>> tabela = new HashMap<>();
+    public List<String> conflitos = new ArrayList<>();
 
     public TabelaParser(List<RegraGramatical> regras) {
         for (RegraGramatical regra : regras) {

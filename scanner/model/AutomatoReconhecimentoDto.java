@@ -1,4 +1,4 @@
-package Scripts;
+package scanner.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
