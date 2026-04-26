@@ -28,7 +28,7 @@ run-parser:
 	java -cp "$(CP)" parser.ParserMain
 
 run-scanner-file:
-	java -cp "$(CP)" scanner.Scanner $(FILE)
+	java -cp "$(CP)" scanner.Scanner "casos_teste/teste_simples.txt"
 
 clean:
 	$(RM) $(call FIXPATH,scanner/model/*.class)
