@@ -26,6 +26,34 @@ O projeto agora inclui persistência do autômato final em JSON com Jackson. Ao 
 
 Tambem ha uma classe `Scanner` que le um automato salvo em JSON e um arquivo texto, substituindo cada lexema reconhecido pelo tipo do estado final correspondente.
 
+## Configuração (configs.json)
+
+O projeto agora possui suas configurações e caminhos de arquivos externalizados no arquivo `configs.json`. Isso permite modificar as regras léxicas, a gramática sintática e os arquivos de teste a serem executados de maneira prática.
+
+Exemplo da estrutura do `configs.json`:
+```json
+{
+  "Scanner": {
+    "LexicalRules": "casos_teste/lexico.rules",
+    "OutputAutomaton": "out/automato-final.json"
+  },
+  "Parser": {
+    "GrammarBnf": "casos_teste/racket.bnf",
+    "AutomatonJson": "out/automato-final.json"
+  },
+  "Test": {
+    "Files": [
+      "casos_teste/teste_simples.txt",
+      "casos_teste/teste_fibonacci.txt",
+      "casos_teste/teste_erro.txt"
+    ]
+  }
+}
+```
+
+* **Scanner.LexicalRules**: Caminho para o arquivo que contém as regras léxicas (`regex -> TIPO_TOKEN`).
+* **Parser.GrammarBnf**: Caminho para o arquivo que define a gramática em formato BNF.
+* **Test.Files**: Lista de arquivos de entrada que serão avaliados pelo compilador.
 
 ## Como Executar
 
