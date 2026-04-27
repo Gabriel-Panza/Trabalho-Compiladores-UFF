@@ -69,7 +69,9 @@ make
 ### Execução
 Para iniciar o compilador e processar o arquivo de testes padrão:
 ```bash
-make run
+make run-scanner
+make run-scanner-file
+make run-parser
 ```
 
 ### Limpeza
