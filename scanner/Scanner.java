@@ -2,6 +2,8 @@ package scanner;
 
 import scanner.model.Automato;
 import scanner.persistence.AutomatoJsonRepository;
+import util.ConfigLoader;
+
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,14 +18,19 @@ public class Scanner {
     private static final String LEXICAL_ERROR_MARKER = "<ERRO_LEXICO>";
 
     public static void main(String[] args) {
-        if (args.length < 1 || args.length > 2) {
-            System.err.println("Uso: java Scanner <automato.json> <entrada.txt> [saida.txt]");
+        String configAutomato = ConfigLoader.getProperty("Scanner.OutputAutomaton", "out/automato-final.json");
+
+        
+        if (args.length < 1) {
+            System.err.println("Uso: java Scanner <entrada.txt> [saida.txt]");
+            System.err.println("Ou configure 'scanner.output_automaton' no compiler.config");
             System.exit(1);
         }
 
-        Path automatoPath = Paths.get("out/automato-final.json");
+        Path automatoPath = Paths.get(configAutomato);
         Path inputPath = Paths.get(args[0]);
-        Path outputPath = args.length == 2 ? Paths.get(args[1]) : defaultOutputPath(inputPath);
+        Path outputPath = args.length >= 2 ? Paths.get(args[1]) : defaultOutputPath(inputPath);
+
 
         AutomatoJsonRepository repository = new AutomatoJsonRepository();
 

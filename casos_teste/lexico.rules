@@ -1,0 +1,15 @@
+# Regras léxicas para Racket contendo regex e o tipo do token
+# Formato: regex -> TOKEN_TYPE
+[ \t\n\r]+ -> WHITESPACE
+;[^\n]* -> COMMENT
+' -> QUOTE
+\( -> LPAREN
+\) -> RPAREN
+define -> KW_DEFINE
+lambda -> KW_LAMBDA
+if -> KW_IF
+#t|#f -> BOOLEAN
+[a-zA-Z!$%&*/:<=>?^_~+\-][a-zA-Z0-9!$%&*/:<=>?^_~+\-.@]* -> IDENTIFIER
+[0-9]+ -> INTEGER
+[0-9]+\.[0-9]* -> FLOAT
+"[^"]*" -> STRING

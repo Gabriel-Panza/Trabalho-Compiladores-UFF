@@ -1,0 +1,17 @@
+{
+  "Scanner": {
+    "LexicalRules": "casos_teste/lexico.rules",
+    "OutputAutomaton": "out/automato-final.json"
+  },
+  "Parser": {
+    "GrammarBnf": "casos_teste/racket.bnf",
+    "AutomatonJson": "out/automato-final.json"
+  },
+  "Test": {
+    "Files": [
+      "casos_teste/teste_simples.txt",
+      "casos_teste/teste_fibonacci.txt",
+      "casos_teste/teste_erro.txt"
+    ]
+  }
+}

@@ -11,6 +11,8 @@ import scanner.Scanner;
 import scanner.model.Automato;
 import scanner.persistence.AutomatoJsonRepository;
 
+import util.ConfigLoader;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,27 +21,22 @@ import java.util.List;
 
 public class ParserMain {
 
-    private static final String AUTOMATO_JSON = "out/automato-final.json";
-    private static final String ARQUIVO_GRAMATICA = "casos_teste/racket.bnf";
-
-    private static final String[] ARQUIVOS_TESTE = {
-            "casos_teste/teste_simples.txt",
-            "casos_teste/teste_fibonacci.txt",
-            "casos_teste/teste_erro.txt"
-    };
-
     public static void main(String[] args) throws Exception {
+        String arquivoGramatica = ConfigLoader.getProperty("Parser.GrammarBnf", "casos_teste/racket.bnf");
+        String automatoJson = ConfigLoader.getProperty("Parser.AutomatonJson", "out/automato-final.json");
+        String[] arquivosTeste = ConfigLoader.getArrayProperty("Test.Files", "casos_teste/teste_simples.txt,casos_teste/teste_fibonacci.txt,casos_teste/teste_erro.txt");
 
-        System.out.println("Gerando gramática dinamicamente a partir de: " + ARQUIVO_GRAMATICA);
+
+        System.out.println("Gerando gramática dinamicamente a partir de: " + arquivoGramatica);
         BNFReader bnf = new BNFReader();
-        bnf.ler(ARQUIVO_GRAMATICA);
+        bnf.ler(arquivoGramatica);
 
         List<RegraGramatical> regrasGeradas = LL1Analyzer.gerarRegras(bnf);
 
         Parser parser = new Parser(regrasGeradas, bnf.simboloInicial);
-        Automato automato = new AutomatoJsonRepository().carregar(AUTOMATO_JSON);
+        Automato automato = new AutomatoJsonRepository().carregar(automatoJson);
 
-        for (String arquivoEntrada : ARQUIVOS_TESTE) {
+        for (String arquivoEntrada : arquivosTeste) {
             Path inputPath = Paths.get(arquivoEntrada);
             String nomeBase = inputPath.getFileName().toString().replaceFirst("\\.[^.]+$", "");
             Path scannedPath = Paths.get("out", nomeBase + ".scanned.txt");

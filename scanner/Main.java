@@ -8,6 +8,8 @@ import scanner.pipeline.NfaToDfaConverter;
 import scanner.pipeline.DfaMinimizer;
 import scanner.pipeline.UnifiedAutomatonBuilder;
 
+import util.ConfigLoader;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -21,21 +23,25 @@ import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
-        String[][] regrasRacket = {
-            { "[ \\t\\n\\r]+", "WHITESPACE" },
-            { ";[^\\n]*", "COMMENT" },
-            { "'", "QUOTE" },
-            { "\\(", "LPAREN" },
-            { "\\)", "RPAREN" },
-            { "define", "KW_DEFINE" },
-            { "lambda", "KW_LAMBDA" },
-            { "if", "KW_IF" },
-            { "#t|#f", "BOOLEAN" },
-            { "[a-zA-Z!$%&*/:<=>?^_~+\\-][a-zA-Z0-9!$%&*/:<=>?^_~+\\-.@]*", "IDENTIFIER" },
-            { "[0-9]+", "INTEGER" },
-            { "[0-9]+\\.[0-9]*", "FLOAT" },
-            { "\"[^\"]*\"", "STRING" }
-        };
+        String lexicalRulesPath = ConfigLoader.getProperty("Scanner.LexicalRules", "casos_teste/lexico.rules");
+        String outputAutomatonPath = ConfigLoader.getProperty("Scanner.OutputAutomaton", "out/automato-final.json");
+
+
+        List<String[]> regrasRacket = new ArrayList<>();
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(lexicalRulesPath));
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) continue;
+                String[] parts = line.split("->");
+                if (parts.length == 2) {
+                    regrasRacket.add(new String[]{parts[0].trim(), parts[1].trim()});
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Erro ao ler arquivo de regras lexicas: " + lexicalRulesPath);
+            return;
+        }
 
         System.out.println("================================================================");
         System.out.println("GERADOR DE SCANNERS - PARSER P/ RACKET");
@@ -66,15 +72,12 @@ public class Main {
         for (RegexToPostfix.RegraLexica regra : regrasProntas) {
             System.out.println("\nTOKEN: " + regra.tipo());
             
-            // AFND (Thompson)
             Automato afn = ThompsonBuilder.build(regra.postfix(), regra.tipo());
             printStatus("AFN", afn);
 
-            // AFD (Subset Construction)
             Automato afd = NfaToDfaConverter.convert(afn);
             printStatus("AFD", afd);
 
-            // AFD Miniminizado (Hopcroft)
             Automato afdMin = DfaMinimizer.minimize(afd);
             printStatus("AFD MINIMIZADO", afdMin);
             
@@ -98,10 +101,9 @@ public class Main {
             }
         }
         
-        final String arquivoSaidaJson = "out/automato-final.json";
         final AutomatoJsonRepository repository = new AutomatoJsonRepository();
         try {
-            repository.salvar(finalAutomaton, arquivoSaidaJson);
+            repository.salvar(finalAutomaton, outputAutomatonPath);
         } catch (Exception e) {
             throw new RuntimeException("Falha ao salvar/carregar o autômato em JSON", e);
         }
