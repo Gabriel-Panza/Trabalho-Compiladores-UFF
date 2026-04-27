@@ -22,9 +22,12 @@ Para transformar regras textuais em um reconhecedor de tokens de alta performanc
 
 ### Observações adicionais
 
-O projeto agora inclui persistência do autômato final em JSON com Jackson. Ao executar o `Main`, o autômato final é salvo em `out/automato-final.json` e carregado novamente para validação.
+O projeto inclui persistência do autómato final em JSON com Jackson. Ao executar o `Main`, o autômato final é salvo em `out/automato-final.json` e carregado novamente para validação.
 
-Tambem ha uma classe `Scanner` que le um automato salvo em JSON e um arquivo texto, substituindo cada lexema reconhecido pelo tipo do estado final correspondente.
+Também ha uma classe `Scanner` que le um autómato salvo em JSON e um arquivo texto, substituindo cada lexema reconhecido pelo tipo do estado final correspondente.
+O arquivo do Scanner.java estava sendo gerado a partir de uma String ao executar 'make run-scanner', substituindo o nome do arquivo do autômato para um literal,
+porém após reorganizar o código para melhor compreensão, a geração parou de funcionar e achamos melhor
+manter apenas o Scanner já gerado acessando sempre o mesmo caminho de autómato.
 
 ## Configuração (configs.json)
 
