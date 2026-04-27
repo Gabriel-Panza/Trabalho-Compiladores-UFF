@@ -22,12 +22,9 @@ Para transformar regras textuais em um reconhecedor de tokens de alta performanc
 
 ### Observações adicionais
 
-O projeto inclui persistência do autómato final em JSON com Jackson. Ao executar o `Main`, o autômato final é salvo em `out/automato-final.json` e carregado novamente para validação.
+O projeto agora inclui persistência do autômato final em JSON com Jackson. Ao executar o `Main`, o autômato final é salvo em `out/automato-final.json` e carregado novamente para validação.
 
-Também ha uma classe `Scanner` que le um autómato salvo em JSON e um arquivo texto, substituindo cada lexema reconhecido pelo tipo do estado final correspondente.
-O arquivo do Scanner.java estava sendo gerado a partir de uma String ao executar 'make run-scanner', substituindo o nome do arquivo do autômato para um literal,
-porém após reorganizar o código para melhor compreensão, a geração parou de funcionar e achamos melhor
-manter apenas o Scanner já gerado acessando sempre o mesmo caminho de autómato.
+Tambem ha uma classe `Scanner` que le um automato salvo em JSON e um arquivo texto, substituindo cada lexema reconhecido pelo tipo do estado final correspondente.
 
 ## Configuração (configs.json)
 
@@ -54,9 +51,10 @@ Exemplo da estrutura do `configs.json`:
 }
 ```
 
-* **Scanner.LexicalRules**: Caminho para o arquivo que contém as regras léxicas (`regex -> TIPO_TOKEN`).
-* **Parser.GrammarBnf**: Caminho para o arquivo que define a gramática em formato BNF.
-* **Test.Files**: Lista de arquivos de entrada que serão avaliados pelo compilador.
+### Entendendo os Campos
+*   **Bloco Scanner**: Utilizado pelo **Gerador de Autômatos**. Ele serve apenas para transformar as regras léxicas (pares de Regex e Tipo) no autômato serializado (JSON) que será consumido pelo compilador. Se o autômato já existir, este bloco é opcional para a execução.
+*   **Bloco Parser**: Utilizado pelo **Analisador Sintático**. Ele recebe a gramática em formato **BNF** para construir a tabela de análise preditiva LL(1) em memória e aponta para o autômato que deve ser usado na fase léxica.
+*   **Bloco Test**: Contém a lista de arquivos de entrada. O compilador percorrerá esta lista executando a análise léxica (via autômato) e sintática (via tabela LL1) sequencialmente para cada arquivo.
 
 ## Como Executar
 
@@ -70,19 +68,12 @@ make
 ```
 
 ### Execução
+Para iniciar o compilador e processar o arquivo de testes padrão:
 
-Para iniciar o compilador e processar o arquivo de testes padrão de forma simplificada:
-
-```bash
-make run
-```
-
-Alternativamente, você pode executar o pipeline passo a passo para observar cada módulo:
 
 ```bash
-make run-scanner       # Gera o autômato a partir das regras léxicas
-make run-scanner-file  # Testa apenas o léxico nos arquivos de entrada
-make run-parser        # Executa o parser completo (carregando o autômato gerado)
+make run-scanner
+make run-parser
 ```
 
 ### Limpeza
