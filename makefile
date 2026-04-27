@@ -1,4 +1,4 @@
-.PHONY: all scanner parser run-scanner run-parser run-scanner-file clean
+.PHONY: all scanner parser run run-scanner run-parser run-scanner-file clean
 
 ifeq ($(OS),Windows_NT)
     SEP = ;
@@ -20,6 +20,10 @@ scanner:
 
 parser:
 	javac -cp "$(CP)" parser/model/*.java parser/grammar/*.java parser/*.java
+
+run: all
+	java -cp "$(CP)" scanner.Main
+	java -cp "$(CP)" parser.ParserMain
 
 run-scanner:
 	java -cp "$(CP)" scanner.Main
