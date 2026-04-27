@@ -2,7 +2,7 @@
 
 ifeq ($(OS),Windows_NT)
     SEP = ;
-    RM = del /Q /S
+    RM = cmd /C del /Q /S
     FIXPATH = $(subst /,\,$(1))
 else
     SEP = :

@@ -1,6 +1,8 @@
 package parser;
 
-import parser.grammar.GramaticaRacket;
+import parser.grammar.BNFReader;
+import parser.grammar.LL1Analyzer;
+import parser.grammar.RegraGramatical;
 import parser.model.ErroSintatico;
 import parser.model.ResultadoParser;
 import parser.model.TokenLido;
@@ -18,15 +20,23 @@ import java.util.List;
 public class ParserMain {
 
     private static final String AUTOMATO_JSON = "out/automato-final.json";
+    private static final String ARQUIVO_GRAMATICA = "casos_teste/racket.bnf";
 
     private static final String[] ARQUIVOS_TESTE = {
-        "casos_teste/teste_simples.txt",
-        "casos_teste/teste_fibonacci.txt",
-        "casos_teste/teste_erro.txt"
+            "casos_teste/teste_simples.txt",
+            "casos_teste/teste_fibonacci.txt",
+            "casos_teste/teste_erro.txt"
     };
 
     public static void main(String[] args) throws Exception {
-        Parser parser = new Parser(GramaticaRacket.criarGramatica(), "Programa");
+
+        System.out.println("Gerando gramática dinamicamente a partir de: " + ARQUIVO_GRAMATICA);
+        BNFReader bnf = new BNFReader();
+        bnf.ler(ARQUIVO_GRAMATICA);
+
+        List<RegraGramatical> regrasGeradas = LL1Analyzer.gerarRegras(bnf);
+
+        Parser parser = new Parser(regrasGeradas, bnf.simboloInicial);
         Automato automato = new AutomatoJsonRepository().carregar(AUTOMATO_JSON);
 
         for (String arquivoEntrada : ARQUIVOS_TESTE) {
@@ -34,17 +44,14 @@ public class ParserMain {
             String nomeBase = inputPath.getFileName().toString().replaceFirst("\\.[^.]+$", "");
             Path scannedPath = Paths.get("out", nomeBase + ".scanned.txt");
 
-            // Escaneia o arquivo fonte e salva os tokens
             String scanned = Scanner.replaceRecognizedLexemesWithTipo(automato,
                 Files.readString(inputPath, StandardCharsets.UTF_8));
             Files.createDirectories(scannedPath.getParent());
             Files.writeString(scannedPath, scanned, StandardCharsets.UTF_8);
 
-            // Lê os tokens e analisa
             List<TokenLido> tokens = ScannedTokenReader.lerTokens(scannedPath);
             ResultadoParser resultado = parser.analisar(tokens);
 
-            // Imprime resultado
             System.out.println("\n================================================================");
             System.out.println("ARQUIVO: " + arquivoEntrada);
             System.out.println("================================================================");

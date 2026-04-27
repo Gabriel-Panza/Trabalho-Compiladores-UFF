@@ -1,0 +1,14 @@
+Programa -> ListaExpr
+ListaExpr -> Expr ListaExpr
+ListaExpr -> EPSILON
+Expr -> LPAREN Corpo RPAREN
+Expr -> IDENTIFIER
+Expr -> INTEGER
+Expr -> FLOAT
+Expr -> BOOLEAN
+Corpo -> KW_DEFINE IDENTIFIER Expr
+Corpo -> KW_LAMBDA LPAREN ListaParam RPAREN Expr
+Corpo -> KW_IF Expr Expr Expr
+Corpo -> Expr ListaExpr
+ListaParam -> IDENTIFIER ListaParam
+ListaParam -> EPSILON
