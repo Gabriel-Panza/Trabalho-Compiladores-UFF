@@ -67,11 +67,19 @@ make
 ```
 
 ### Execução
-Para iniciar o compilador e processar o arquivo de testes padrão:
+
+Para iniciar o compilador e processar o arquivo de testes padrão de forma simplificada:
+
 ```bash
-make run-scanner
-make run-scanner-file
-make run-parser
+make run
+```
+
+Alternativamente, você pode executar o pipeline passo a passo para observar cada módulo:
+
+```bash
+make run-scanner       # Gera o autômato a partir das regras léxicas
+make run-scanner-file  # Testa apenas o léxico nos arquivos de entrada
+make run-parser        # Executa o parser completo (carregando o autômato gerado)
 ```
 
 ### Limpeza
