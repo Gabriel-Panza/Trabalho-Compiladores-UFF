@@ -11,7 +11,9 @@
     "Files": [
       "casos_teste/teste_simples.txt",
       "casos_teste/teste_fibonacci.txt",
-      "casos_teste/teste_erro.txt"
+      "casos_teste/teste_erro.txt",
+      "casos_teste/teste_parentese_aberto.txt",
+      "casos_teste/teste_parentese_extra.txt"
     ]
   }
 }

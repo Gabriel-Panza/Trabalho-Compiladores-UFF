@@ -58,10 +58,11 @@ public class ParserMain {
                 System.out.println("\nArvore sintatica:");
                 resultado.arvore.imprimir("", true);
             } else {
-                System.out.println("RESULTADO: REJEITADO (" + resultado.erros.size() + " erros)");
-                System.out.println("\nErros:");
+                System.out.println("RESULTADO: REJEITADO");
+                System.out.println("\nErros encontrados:");
+                int num = 1;
                 for (ErroSintatico erro : resultado.erros) {
-                    System.out.println("  " + erro);
+                    System.out.println("  [" + num++ + "] " + erro);
                 }
                 System.out.println("\nArvore parcial:");
                 resultado.arvore.imprimir("", true);

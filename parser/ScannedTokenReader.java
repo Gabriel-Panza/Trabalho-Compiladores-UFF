@@ -17,6 +17,7 @@ public class ScannedTokenReader {
     public static List<TokenLido> lerTokens(Path caminho) throws IOException {
         List<TokenLido> tokens = new ArrayList<>();
         int linhaFonte = 1;
+        int colunaFonte = 1;
 
         for (String linha : Files.readAllLines(caminho, StandardCharsets.UTF_8)) {
             if (linha.isBlank() || linha.startsWith("=") || linha.equals("TOKENS RECONHECIDOS")) {
@@ -38,12 +39,14 @@ public class ScannedTokenReader {
 
             if (tipo.equals("WHITESPACE") || tipo.equals("COMMENT")) {
                 for (char c : lexema.toCharArray()) {
-                    if (c == '\n') linhaFonte++;
+                    if (c == '\n') { linhaFonte++; colunaFonte = 1; }
+                    else { colunaFonte++; }
                 }
                 continue;
             }
 
-            tokens.add(new TokenLido(tipo, lexema, linhaFonte, 0));
+            tokens.add(new TokenLido(tipo, lexema, linhaFonte, colunaFonte));
+            colunaFonte += lexema.length();
         }
 
         return tokens;
