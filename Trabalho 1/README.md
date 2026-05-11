@@ -60,6 +60,16 @@ Exemplo da estrutura do `configs.json`:
 
 O projeto utiliza um **Makefile** para simplificar o ciclo de vida do desenvolvimento. Certifique-se de ter o JDK 17 ou superior instalado.
 
+Se estiver na raiz do repositorio, entre na pasta principal antes de rodar os comandos:
+```bash
+cd "Trabalho 1"
+```
+
+Garanta que `java -version` e `javac -version` apontem para JDK 17 ou superior. Se precisar, sobrescreva os binarios usados pelo Makefile:
+```bash
+make JAVAC="/caminho/para/javac" JAVA="/caminho/para/java"
+```
+
 ### Compilação
 
 Para compilar todos os módulos do projeto e gerar os arquivos binários:

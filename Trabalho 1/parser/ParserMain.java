@@ -35,19 +35,23 @@ public class ParserMain {
 
         Parser parser = new Parser(regrasGeradas, bnf.simboloInicial);
         Automato automato = new AutomatoJsonRepository().carregar(automatoJson);
+        Path scannedDir = Paths.get(automatoJson).getParent();
+        if (scannedDir == null) {
+            scannedDir = Paths.get("out");
+        }
 
         for (String arquivoEntrada : arquivosTeste) {
             Path inputPath = Paths.get(arquivoEntrada);
             String nomeBase = inputPath.getFileName().toString().replaceFirst("\\.[^.]+$", "");
-            Path scannedPath = Paths.get("out", nomeBase + ".scanned.txt");
+            Path scannedPath = scannedDir.resolve(nomeBase + ".scanned.txt");
 
             String scanned = Scanner.replaceRecognizedLexemesWithTipo(automato,
                 Files.readString(inputPath, StandardCharsets.UTF_8));
             Files.createDirectories(scannedPath.getParent());
             Files.writeString(scannedPath, scanned, StandardCharsets.UTF_8);
 
-            List<TokenLido> tokens = ScannedTokenReader.lerTokens(scannedPath);
-            ResultadoParser resultado = parser.analisar(tokens);
+            List<TokenLido> tokens = ScannedTokenReader.lerTokens(scannedPath, arquivoEntrada);
+            ResultadoParser resultado = parser.analisar(tokens, arquivoEntrada);
 
             System.out.println("\n================================================================");
             System.out.println("ARQUIVO: " + arquivoEntrada);

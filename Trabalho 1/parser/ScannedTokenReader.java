@@ -15,12 +15,16 @@ public class ScannedTokenReader {
     // Formato de cada linha: "001  TIPO                  lexema: "LEXEMA""
     // Filtra WHITESPACE e COMMENT; rastreia número de linha pelo conteúdo.
     public static List<TokenLido> lerTokens(Path caminho) throws IOException {
+        return lerTokens(caminho, caminho.toString());
+    }
+
+    public static List<TokenLido> lerTokens(Path caminho, String arquivoFonte) throws IOException {
         List<TokenLido> tokens = new ArrayList<>();
         int linhaFonte = 1;
         int colunaFonte = 1;
 
         for (String linha : Files.readAllLines(caminho, StandardCharsets.UTF_8)) {
-            if (linha.isBlank() || linha.startsWith("=") || linha.equals("TOKENS RECONHECIDOS")) {
+            if (linha.trim().isEmpty() || linha.startsWith("=") || linha.equals("TOKENS RECONHECIDOS")) {
                 continue;
             }
 
@@ -45,7 +49,7 @@ public class ScannedTokenReader {
                 continue;
             }
 
-            tokens.add(new TokenLido(tipo, lexema, linhaFonte, colunaFonte));
+            tokens.add(new TokenLido(tipo, lexema, linhaFonte, colunaFonte, arquivoFonte));
             colunaFonte += lexema.length();
         }
 

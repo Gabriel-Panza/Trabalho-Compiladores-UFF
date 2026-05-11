@@ -12,12 +12,16 @@ public class BNFReader {
     public void ler(String pathBNF) throws Exception {
         List<String> linhas = Files.readAllLines(Paths.get(pathBNF));
 
+        int numeroLinha = 0;
         for (String linha : linhas) {
+            numeroLinha++;
             linha = linha.trim();
             if (linha.isEmpty() || linha.startsWith("#")) continue;
 
             String[] partes = linha.split("->");
-            if (partes.length != 2) throw new RuntimeException("Erro de sintaxe no BNF: " + linha);
+            if (partes.length != 2) {
+                throw new RuntimeException("Erro de sintaxe no BNF em " + pathBNF + ", linha " + numeroLinha + ": " + linha);
+            }
 
             String naoTerminal = partes[0].trim();
             String producaoStr = partes[1].trim();

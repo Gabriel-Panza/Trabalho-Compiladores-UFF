@@ -75,6 +75,14 @@ public class Parser {
     }
 
     public ResultadoParser analisar(List<TokenLido> tokens) {
+        return analisar(tokens, detectarArquivoFonte(tokens));
+    }
+
+    public ResultadoParser analisar(List<TokenLido> tokens, String arquivoFonte) {
+        if (arquivoFonte == null || arquivoFonte.trim().isEmpty()) {
+            arquivoFonte = detectarArquivoFonte(tokens);
+        }
+
         List<ErroSintatico> erros = new ArrayList<>();
         int posicao = 0;
         int errosTentados = 0;
@@ -216,7 +224,29 @@ public class Parser {
                 0, 0, "", "", ""));
         }
 
+        aplicarArquivoFonte(erros, arquivoFonte);
         return new ResultadoParser(raiz, erros);
+    }
+
+    private String detectarArquivoFonte(List<TokenLido> tokens) {
+        for (TokenLido token : tokens) {
+            if (token.arquivo != null && !token.arquivo.trim().isEmpty()) {
+                return token.arquivo;
+            }
+        }
+        return null;
+    }
+
+    private void aplicarArquivoFonte(List<ErroSintatico> erros, String arquivoFonte) {
+        if (arquivoFonte == null || arquivoFonte.trim().isEmpty()) {
+            return;
+        }
+
+        for (ErroSintatico erro : erros) {
+            if (erro.arquivo == null || erro.arquivo.trim().isEmpty()) {
+                erro.arquivo = arquivoFonte;
+            }
+        }
     }
 
     public TabelaParser getTabela() {

@@ -29,7 +29,7 @@ public class Scanner {
 
         Path automatoPath = Paths.get(configAutomato);
         Path inputPath = Paths.get(args[0]);
-        Path outputPath = args.length >= 2 ? Paths.get(args[1]) : defaultOutputPath(inputPath);
+        Path outputPath = args.length >= 2 ? Paths.get(args[1]) : defaultOutputPath(inputPath, automatoPath.getParent());
 
 
         AutomatoJsonRepository repository = new AutomatoJsonRepository();
@@ -177,11 +177,12 @@ public class Scanner {
         return tipos.get(0);
     }
 
-    private static Path defaultOutputPath(Path inputPath) {
+    private static Path defaultOutputPath(Path inputPath, Path outputDir) {
         String fileName = inputPath.getFileName() == null ? "saida" : inputPath.getFileName().toString();
         int extIndex = fileName.lastIndexOf('.');
         String baseName = extIndex <= 0 ? fileName : fileName.substring(0, extIndex);
-        return Paths.get("out", baseName + ".scanned.txt");
+        Path dir = outputDir == null ? Paths.get("out") : outputDir;
+        return dir.resolve(baseName + ".scanned.txt");
     }
 
     private static class Match {
