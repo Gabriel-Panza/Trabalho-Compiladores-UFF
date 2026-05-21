@@ -1,17 +1,46 @@
 # Trabalho 2 - Compilador Scheme para Python
 
-Este diretorio contem uma segunda entrega independente: um compilador em Java para um subconjunto de Scheme, com scanner, parser bottom-up, verificacao semantica de tipos/contexto e geracao de codigo Python.
+Compilador em Java para um subconjunto de Scheme, com scanner, parser bottom-up, verificacao semantica e geracao de Python.
 
-## Subconjunto aceito
+## Estrutura
 
-- Literais: inteiros, decimais, strings e booleanos `#t` / `#f`.
-- Identificadores Scheme com conversao segura para nomes Python.
-- Definicoes: `(define x expr)` e `(define (f a b) corpo...)`.
-- Expressoes especiais: `if`, `begin`, `lambda`, `let`, `set!`.
-- Operadores: `+`, `-`, `*`, `/`, `<`, `<=`, `>`, `>=`, `=`, `and`, `or`, `not`.
-- Saida simples: `display` e `newline`.
-- Chamadas de funcoes definidas pelo usuario.
+- `grammar/`: especificacoes de referencia no estilo Flex/Bison (`scheme.flex` e `scheme.y`).
+- `src/compiler/`: implementacao Java do pipeline.
+- `exemplos/`: programas Scheme usados para testar sucesso e erros.
+- `out/`: arquivos Python gerados.
+- `build/`: classes Java compiladas.
+- `pipeline_trabalho2.svg`: diagrama do pipeline do Trabalho 2.
+- `makefile`: comandos de compilacao e execucao.
 
-## Relacao com Flex/Bison
+## Como executar
 
-A pasta `grammar/` contem especificacoes de referencia para scanner e parser no estilo Flex/Bison. A implementacao entregue em Java usa as mesmas categorias lexicas e uma estrategia bottom-up explicita por deslocamento/reducao de S-expressions, para manter o projeto executavel sem depender de ferramentas externas que nao estejam instaladas.
+Na pasta `Trabalho 2`:
+
+```sh
+make
+make run-validos
+make run-erros
+```
+
+`make run-validos` compila o Java, traduz `programa_valido.scm` e `fatorial.scm` para Python e executa os `.py` gerados.
+
+`make run-erros` executa `exemplos/erros.scm` e mostra erros com trecho do codigo, linha, coluna e mensagem para o usuario.
+
+Por padrao, o Make usa `py -3` no Windows e `python3` no Linux/macOS. Se precisar, informe outro comando:
+
+```sh
+make run-validos PY_CMD=python
+```
+
+Para compilar um arquivo especifico:
+
+```sh
+make run-file FILE=exemplos/fatorial.scm OUT=out/fatorial.py
+python out/fatorial.py
+```
+
+## Pipeline
+
+`.scm` -> scanner -> tokens -> parser bottom-up -> AST -> verificacao semantica -> gerador Python -> `.py`.
+
+Durante a execucao, o compilador imprime esse passo a passo de forma indentada. Em caso de erro, ele mostra o que conseguiu fazer ate a etapa que falhou e depois imprime a mensagem de erro com linha e coluna.
