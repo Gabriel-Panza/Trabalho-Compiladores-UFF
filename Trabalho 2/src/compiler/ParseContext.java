@@ -2,13 +2,14 @@ package compiler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public final class SemanticAnalyzer {
+public final class ParseContext {
     private enum SymbolKind {
         VARIABLE,
         FUNCTION
@@ -71,39 +72,23 @@ public final class SemanticAnalyzer {
     private final List<Diagnostic> diagnostics = new ArrayList<>();
     private final Scope global = new Scope(null);
 
-    public void analyze(Program program) throws CompilerException {
-        predeclareFunctions(program);
-        for (Expr expression : program.expressions) {
-            analyzeTopLevel(expression);
-        }
-        if (!diagnostics.isEmpty()) {
-            throw new CompilerException(diagnostics);
-        }
+    public void acceptTopLevel(Expr expression) {
+        analyzeTopLevel(expression, global);
     }
 
-    private void predeclareFunctions(Program program) {
-        for (Expr expression : program.expressions) {
-            if (expression instanceof ListExpr) {
-                ListExpr list = (ListExpr) expression;
-                if (isIdentifier(list, 0, "define") && isFunctionDefine(list)) {
-                    FunctionHeader header = readFunctionHeader(list);
-                    if (header != null && !global.hasLocal(header.name)) {
-                        global.define(new Symbol(header.name, SymbolKind.FUNCTION, Type.UNKNOWN, header.params.size()));
-                    }
-                }
-            }
-        }
+    public List<Diagnostic> diagnostics() {
+        return Collections.unmodifiableList(diagnostics);
     }
 
-    private void analyzeTopLevel(Expr expression) {
+    private void analyzeTopLevel(Expr expression, Scope scope) {
         if (expression instanceof ListExpr) {
             ListExpr list = (ListExpr) expression;
             if (isIdentifier(list, 0, "define")) {
-                analyzeDefine(list, global);
+                analyzeDefine(list, scope);
                 return;
             }
         }
-        infer(expression, global);
+        infer(expression, scope);
     }
 
     private Type analyzeDefine(ListExpr list, Scope scope) {
@@ -189,16 +174,30 @@ public final class SemanticAnalyzer {
         if (expression instanceof ListExpr) {
             return inferList((ListExpr) expression, scope);
         }
+        if (expression instanceof VectorExpr) {
+            return inferVector((VectorExpr) expression, scope);
+        }
+        if (expression instanceof PrefixExpr) {
+            return inferPrefix((PrefixExpr) expression, scope);
+        }
+        if (expression instanceof DottedListExpr) {
+            report(expression.span, "Pares pontuados sao reconhecidos, mas ainda nao podem ser usados como expressao executavel.");
+            return Type.UNKNOWN;
+        }
         return Type.UNKNOWN;
     }
 
     private Type inferAtom(AtomExpr atom, Scope scope) {
         switch (atom.type) {
             case INTEGER:
+            case HEX_INTEGER:
+            case BIN_INTEGER:
                 return Type.INT;
             case FLOAT:
+            case RATIONAL:
                 return Type.FLOAT;
             case STRING:
+            case CHARACTER:
                 return Type.STRING;
             case BOOLEAN:
                 return Type.BOOLEAN;
@@ -212,6 +211,24 @@ public final class SemanticAnalyzer {
             default:
                 return Type.UNKNOWN;
         }
+    }
+
+    private Type inferVector(VectorExpr vector, Scope scope) {
+        for (Expr element : vector.elements) {
+            infer(element, scope);
+        }
+        return Type.UNKNOWN;
+    }
+
+    private Type inferPrefix(PrefixExpr prefix, Scope scope) {
+        if (prefix.prefix == TokenType.QUOTE || prefix.prefix == TokenType.QUASIQUOTE) {
+            return Type.UNKNOWN;
+        }
+        if (prefix.prefix == TokenType.UNQUOTE || prefix.prefix == TokenType.UNQUOTE_SPLICING) {
+            report(prefix.span, "Esta forma com virgula so faz sentido dentro de uma quasi-citacao.");
+            return infer(prefix.value, scope);
+        }
+        return infer(prefix.value, scope);
     }
 
     private Type inferList(ListExpr list, Scope scope) {

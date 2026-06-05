@@ -30,6 +30,7 @@ SOURCES = $(wildcard $(SRC_DIR)/*.java)
 
 VALIDO = exemplos/programa_valido.scm
 FATORIAL = exemplos/fatorial.scm
+NOVAS_REGRAS = exemplos/hex_bin_extras.scm
 ERROS = exemplos/erros.scm
 FILE ?= $(VALIDO)
 OUT ?= $(OUT_DIR)/saida.py
@@ -52,6 +53,10 @@ run-validos: compile
 	$(JAVA) -cp $(BUILD_DIR) $(MAIN_CLASS) $(FATORIAL) $(OUT_DIR)/fatorial.py
 	$(call PRINT_TITLE,Python executando $(OUT_DIR)/fatorial.py)
 	$(PY_CMD) $(OUT_DIR)/fatorial.py
+	$(call PRINT_TITLE,compilador lendo $(NOVAS_REGRAS))
+	$(JAVA) -cp $(BUILD_DIR) $(MAIN_CLASS) $(NOVAS_REGRAS) $(OUT_DIR)/novas_regras.py
+	$(call PRINT_TITLE,Python executando $(OUT_DIR)/novas_regras.py)
+	$(PY_CMD) $(OUT_DIR)/novas_regras.py
 
 run-erros: compile
 	$(call MKDIR_P,$(OUT_DIR))

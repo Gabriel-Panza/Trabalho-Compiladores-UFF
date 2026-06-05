@@ -27,10 +27,18 @@ public final class Lexer {
                 addSingle(TokenType.LPAREN);
             } else if (c == ')') {
                 addSingle(TokenType.RPAREN);
+            } else if (c == '\'') {
+                addSingle(TokenType.QUOTE);
+            } else if (c == '`') {
+                addSingle(TokenType.QUASIQUOTE);
+            } else if (c == ',') {
+                readUnquote();
+            } else if (c == '.') {
+                readDotOrEllipsis();
             } else if (c == '"') {
                 readString();
             } else if (c == '#') {
-                readBoolean();
+                readHashToken();
             } else if (isNumberStart()) {
                 readNumber();
             } else if (isIdentifierStart(c)) {
@@ -59,11 +67,59 @@ public final class Lexer {
         }
     }
 
-    private void readBoolean() throws CompilerException {
+    private void readUnquote() {
         int startLine = line;
         int startColumn = column;
         advance();
-        if (!isAtEnd() && (peek() == 't' || peek() == 'f')) {
+        if (!isAtEnd() && peek() == '@') {
+            advance();
+            tokens.add(new Token(
+                    TokenType.UNQUOTE_SPLICING,
+                    ",@",
+                    new SourceSpan(startLine, startColumn, line, column - 1)));
+            return;
+        }
+        tokens.add(new Token(
+                TokenType.UNQUOTE,
+                ",",
+                new SourceSpan(startLine, startColumn, line, column - 1)));
+    }
+
+    private void readDotOrEllipsis() {
+        int startLine = line;
+        int startColumn = column;
+        if (matches("...")) {
+            advance();
+            advance();
+            advance();
+            tokens.add(new Token(
+                    TokenType.IDENTIFIER,
+                    "...",
+                    new SourceSpan(startLine, startColumn, line, column - 1)));
+            return;
+        }
+        addSingle(TokenType.DOT);
+    }
+
+    private void readHashToken() throws CompilerException {
+        int startLine = line;
+        int startColumn = column;
+        advance();
+        if (isAtEnd()) {
+            throw new CompilerException(Diagnostic.lexical(
+                    new SourceSpan(startLine, startColumn, line, column),
+                    "Depois de '#', use uma forma valida como '#t', '#f', '#(...)', '#\\a', '#xFF' ou '#b1010'."));
+        }
+
+        if (peek() == '(') {
+            advance();
+            tokens.add(new Token(
+                    TokenType.VECTOR_START,
+                    "#(",
+                    new SourceSpan(startLine, startColumn, line, column - 1)));
+            return;
+        }
+        if (peek() == 't' || peek() == 'f') {
             char value = advance();
             tokens.add(new Token(
                     TokenType.BOOLEAN,
@@ -71,9 +127,65 @@ public final class Lexer {
                     new SourceSpan(startLine, startColumn, line, column - 1)));
             return;
         }
+        if (peek() == '\\') {
+            readCharacter(startLine, startColumn);
+            return;
+        }
+        if (peek() == 'x') {
+            readBaseInteger(startLine, startColumn, TokenType.HEX_INTEGER, "0123456789abcdefABCDEF", "#x");
+            return;
+        }
+        if (peek() == 'b') {
+            readBaseInteger(startLine, startColumn, TokenType.BIN_INTEGER, "01", "#b");
+            return;
+        }
         throw new CompilerException(Diagnostic.lexical(
                 new SourceSpan(startLine, startColumn, line, column),
-                "Depois de '#', use '#t' para verdadeiro ou '#f' para falso."));
+                "Depois de '#', use uma forma valida como '#t', '#f', '#(...)', '#\\a', '#xFF' ou '#b1010'."));
+    }
+
+    private void readCharacter(int startLine, int startColumn) throws CompilerException {
+        advance();
+        StringBuilder value = new StringBuilder("#\\");
+        while (!isAtEnd() && !Character.isWhitespace(peek()) && peek() != '(' && peek() != ')') {
+            value.append(advance());
+        }
+
+        if (value.length() == 2) {
+            throw new CompilerException(Diagnostic.lexical(
+                    new SourceSpan(startLine, startColumn, line, column),
+                    "Depois de '#\\', informe o caractere desejado."));
+        }
+
+        tokens.add(new Token(
+                TokenType.CHARACTER,
+                value.toString(),
+                new SourceSpan(startLine, startColumn, line, column - 1)));
+    }
+
+    private void readBaseInteger(
+            int startLine,
+            int startColumn,
+            TokenType type,
+            String allowedDigits,
+            String prefix) throws CompilerException {
+        advance();
+        StringBuilder value = new StringBuilder(prefix);
+
+        while (!isAtEnd() && allowedDigits.indexOf(peek()) >= 0) {
+            value.append(advance());
+        }
+
+        if (value.length() == prefix.length()) {
+            throw new CompilerException(Diagnostic.lexical(
+                    new SourceSpan(startLine, startColumn, line, column),
+                    "Depois de '" + prefix + "', informe pelo menos um digito valido."));
+        }
+
+        tokens.add(new Token(
+                type,
+                value.toString(),
+                new SourceSpan(startLine, startColumn, line, column - 1)));
     }
 
     private void readString() throws CompilerException {
@@ -143,9 +255,22 @@ public final class Lexer {
             value.append(advance());
         }
 
-        boolean isFloat = false;
+        TokenType type = TokenType.INTEGER;
+        if (!isAtEnd() && peek() == '/' && hasNextDigit()) {
+            type = TokenType.RATIONAL;
+            value.append(advance());
+            while (!isAtEnd() && Character.isDigit(peek())) {
+                value.append(advance());
+            }
+            tokens.add(new Token(
+                    type,
+                    value.toString(),
+                    new SourceSpan(startLine, startColumn, line, column - 1)));
+            return;
+        }
+
         if (!isAtEnd() && peek() == '.' && hasNextDigit()) {
-            isFloat = true;
+            type = TokenType.FLOAT;
             value.append(advance());
             while (!isAtEnd() && Character.isDigit(peek())) {
                 value.append(advance());
@@ -153,7 +278,7 @@ public final class Lexer {
         }
 
         tokens.add(new Token(
-                isFloat ? TokenType.FLOAT : TokenType.INTEGER,
+                type,
                 value.toString(),
                 new SourceSpan(startLine, startColumn, line, column - 1)));
     }
@@ -184,7 +309,7 @@ public final class Lexer {
     private boolean isIdentifierStart(char c) {
         return Character.isLetter(c)
                 || c == '_'
-                || "+-*/<>=!?$%&:.".indexOf(c) >= 0;
+                || "+-*/<>=!?$%&:".indexOf(c) >= 0;
     }
 
     private boolean isIdentifierPart(char c) {
@@ -197,6 +322,13 @@ public final class Lexer {
 
     private char peek() {
         return input.charAt(index);
+    }
+
+    private boolean matches(String text) {
+        if (index + text.length() > input.length()) {
+            return false;
+        }
+        return input.substring(index, index + text.length()).equals(text);
     }
 
     private char advance() {

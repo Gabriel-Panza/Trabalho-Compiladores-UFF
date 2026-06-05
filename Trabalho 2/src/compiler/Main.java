@@ -35,14 +35,17 @@ public final class Main {
             printer.tokens(tokens);
 
             printer.step(3, "Parser bottom-up");
-            Program program = new Parser(tokens).parse();
+            Parser parser = new Parser(tokens);
+            Program program = parser.parse();
             printer.item("resultado", "programa aceito");
             printer.ast(program);
 
             printer.step(4, "Verificacao semantica");
-            new SemanticAnalyzer().analyze(program);
+            if (!parser.semanticDiagnostics().isEmpty()) {
+                throw new CompilerException(parser.semanticDiagnostics());
+            }
             printer.item("resultado", "sem erros");
-            printer.message("identificadores, chamadas de funcao e tipos foram verificados");
+            printer.message("tabela de simbolos, arvore e tipos foram construidos/verificados junto das reducoes do parser");
 
             printer.step(5, "Geracao de Python");
             String python = new PythonGenerator().generate(program);

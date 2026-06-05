@@ -16,6 +16,10 @@ public final class Token {
                 || type == TokenType.FLOAT
                 || type == TokenType.STRING
                 || type == TokenType.BOOLEAN
-                || type == TokenType.IDENTIFIER;
+                || type == TokenType.IDENTIFIER
+                || type == TokenType.CHARACTER
+                || type == TokenType.RATIONAL
+                || type == TokenType.HEX_INTEGER
+                || type == TokenType.BIN_INTEGER;
     }
 }

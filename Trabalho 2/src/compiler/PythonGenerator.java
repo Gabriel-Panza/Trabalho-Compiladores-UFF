@@ -141,6 +141,15 @@ public final class PythonGenerator {
         if (expression instanceof AtomExpr) {
             return atomExpr((AtomExpr) expression);
         }
+        if (expression instanceof VectorExpr) {
+            return vectorExpr((VectorExpr) expression);
+        }
+        if (expression instanceof PrefixExpr) {
+            return prefixExpr((PrefixExpr) expression);
+        }
+        if (expression instanceof DottedListExpr) {
+            return dottedExpr((DottedListExpr) expression);
+        }
         ListExpr list = (ListExpr) expression;
         if (list.elements.isEmpty()) {
             return "None";
@@ -186,8 +195,16 @@ public final class PythonGenerator {
             case INTEGER:
             case FLOAT:
                 return atom.text;
+            case RATIONAL:
+                return rationalExpr(atom.text);
+            case HEX_INTEGER:
+                return "0x" + atom.text.substring(2);
+            case BIN_INTEGER:
+                return "0b" + atom.text.substring(2);
             case STRING:
                 return quote(atom.text);
+            case CHARACTER:
+                return quote(characterValue(atom.text));
             case BOOLEAN:
                 return atom.text.equals("#t") ? "True" : "False";
             case IDENTIFIER:
@@ -195,6 +212,50 @@ public final class PythonGenerator {
             default:
                 return "None";
         }
+    }
+
+    private String vectorExpr(VectorExpr vector) {
+        return vector.elements.stream()
+                .map(this::expr)
+                .collect(Collectors.joining(", ", "[", "]"));
+    }
+
+    private String prefixExpr(PrefixExpr prefix) {
+        if (prefix.prefix == TokenType.QUOTE || prefix.prefix == TokenType.QUASIQUOTE) {
+            return literal(prefix.value);
+        }
+        return expr(prefix.value);
+    }
+
+    private String dottedExpr(DottedListExpr dotted) {
+        String head = dotted.head.stream().map(this::literal).collect(Collectors.joining(", ", "[", "]"));
+        return "(" + head + ", " + literal(dotted.tail) + ")";
+    }
+
+    private String literal(Expr expression) {
+        if (expression instanceof AtomExpr) {
+            AtomExpr atom = (AtomExpr) expression;
+            if (atom.type == TokenType.IDENTIFIER) {
+                return quote(atom.text);
+            }
+            return atomExpr(atom);
+        }
+        if (expression instanceof ListExpr) {
+            ListExpr list = (ListExpr) expression;
+            return list.elements.stream().map(this::literal).collect(Collectors.joining(", ", "[", "]"));
+        }
+        if (expression instanceof VectorExpr) {
+            VectorExpr vector = (VectorExpr) expression;
+            return vector.elements.stream().map(this::literal).collect(Collectors.joining(", ", "[", "]"));
+        }
+        if (expression instanceof DottedListExpr) {
+            return dottedExpr((DottedListExpr) expression);
+        }
+        if (expression instanceof PrefixExpr) {
+            PrefixExpr prefix = (PrefixExpr) expression;
+            return literal(prefix.value);
+        }
+        return "None";
     }
 
     private String lambdaExpr(ListExpr list) {
@@ -238,6 +299,22 @@ public final class PythonGenerator {
             return "(1 / " + expr(list.elements.get(1)) + ")";
         }
         return infix(list, "/");
+    }
+
+    private String rationalExpr(String value) {
+        String[] parts = value.split("/", 2);
+        return "(" + parts[0] + " / " + parts[1] + ")";
+    }
+
+    private String characterValue(String text) {
+        String value = text.substring(2);
+        if (value.equals("space")) {
+            return " ";
+        }
+        if (value.equals("newline")) {
+            return "\n";
+        }
+        return value;
     }
 
     private String callExpr(ListExpr list) {

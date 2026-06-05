@@ -22,7 +22,7 @@ make run-validos
 make run-erros
 ```
 
-`make run-validos` compila o Java, traduz `programa_valido.scm` e `fatorial.scm` para Python e executa os `.py` gerados.
+`make run-validos` compila o Java, traduz os exemplos validos para Python e executa os `.py` gerados.
 
 `make run-erros` executa `exemplos/erros.scm` e mostra erros com trecho do codigo, linha, coluna e mensagem para o usuario.
 
@@ -41,6 +41,8 @@ python out/fatorial.py
 
 ## Pipeline
 
-`.scm` -> scanner -> tokens -> parser bottom-up -> AST -> verificacao semantica -> gerador Python -> `.py`.
+`.scm` -> scanner -> tokens -> parser bottom-up -> AST + tabela de simbolos + verificacao semantica -> gerador Python -> `.py`.
 
 Durante a execucao, o compilador imprime esse passo a passo de forma indentada. Em caso de erro, ele mostra o que conseguiu fazer ate a etapa que falhou e depois imprime a mensagem de erro com linha e coluna.
+
+A tabela de simbolos e a verificacao de tipos/contexto sao acionadas pelo parser enquanto as expressoes completas sao reduzidas e adicionadas ao programa.

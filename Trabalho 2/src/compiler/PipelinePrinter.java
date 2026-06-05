@@ -77,6 +77,30 @@ public final class PipelinePrinter {
             out.println(prefix + atom.type.name() + " " + quote(atom.text));
             return;
         }
+        if (expression instanceof PrefixExpr) {
+            PrefixExpr prefixExpr = (PrefixExpr) expression;
+            out.println(prefix + prefixExpr.prefix.name() + " " + quote(prefixExpr.text));
+            printExpr(prefixExpr.value, level + 1);
+            return;
+        }
+        if (expression instanceof VectorExpr) {
+            VectorExpr vector = (VectorExpr) expression;
+            out.println(prefix + "VETOR");
+            for (Expr child : vector.elements) {
+                printExpr(child, level + 1);
+            }
+            return;
+        }
+        if (expression instanceof DottedListExpr) {
+            DottedListExpr dotted = (DottedListExpr) expression;
+            out.println(prefix + "LISTA_PONTUADA");
+            for (Expr child : dotted.head) {
+                printExpr(child, level + 1);
+            }
+            out.println(indent(level + 1) + "PONTO");
+            printExpr(dotted.tail, level + 1);
+            return;
+        }
 
         ListExpr list = (ListExpr) expression;
         out.println(prefix + "LISTA");
