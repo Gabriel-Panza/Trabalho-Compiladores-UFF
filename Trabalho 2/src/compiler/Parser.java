@@ -89,6 +89,10 @@ public final class Parser {
         return context.diagnostics();
     }
 
+    public List<ParseContext.SymbolInfo> symbolTable() {
+        return context.symbolTable();
+    }
+
     private void reduceList(List<Object> stack, Token closingToken) {
         List<Object> items = new ArrayList<>();
         while (!stack.isEmpty()) {

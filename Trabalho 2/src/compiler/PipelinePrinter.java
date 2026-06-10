@@ -56,6 +56,24 @@ public final class PipelinePrinter {
         }
     }
 
+    public void symbolTable(List<ParseContext.SymbolInfo> symbols) {
+        out.println("    tabela de simbolos:");
+        if (symbols.isEmpty()) {
+            out.println("        <vazia>");
+            return;
+        }
+        out.println("        nome        categoria  tipo      aridade");
+        for (ParseContext.SymbolInfo symbol : symbols) {
+            String arity = symbol.kind.equals("funcao") ? Integer.toString(symbol.arity) : "-";
+            out.printf(
+                    "        %-11s %-10s %-8s %s%n",
+                    symbol.name,
+                    symbol.kind,
+                    symbol.type.name(),
+                    arity);
+        }
+    }
+
     public void generatedCode(String code) {
         out.println("    codigo gerado:");
         String[] lines = code.split("\\R", -1);

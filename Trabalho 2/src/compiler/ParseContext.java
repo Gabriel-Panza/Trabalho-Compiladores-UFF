@@ -10,6 +10,20 @@ import java.util.Map;
 import java.util.Set;
 
 public final class ParseContext {
+    public static final class SymbolInfo {
+        public final String name;
+        public final String kind;
+        public final Type type;
+        public final int arity;
+
+        SymbolInfo(String name, String kind, Type type, int arity) {
+            this.name = name;
+            this.kind = kind;
+            this.type = type;
+            this.arity = arity;
+        }
+    }
+
     private enum SymbolKind {
         VARIABLE,
         FUNCTION
@@ -78,6 +92,23 @@ public final class ParseContext {
 
     public List<Diagnostic> diagnostics() {
         return Collections.unmodifiableList(diagnostics);
+    }
+
+    public List<SymbolInfo> symbolTable() {
+        List<SymbolInfo> table = new ArrayList<>();
+        for (Symbol symbol : global.symbols.values()) {
+            table.add(new SymbolInfo(
+                    symbol.name,
+                    symbolKindLabel(symbol.kind),
+                    symbol.type,
+                    symbol.arity));
+        }
+        Collections.sort(table, (left, right) -> left.name.compareTo(right.name));
+        return Collections.unmodifiableList(table);
+    }
+
+    private String symbolKindLabel(SymbolKind kind) {
+        return kind == SymbolKind.FUNCTION ? "funcao" : "variavel";
     }
 
     private void analyzeTopLevel(Expr expression, Scope scope) {
