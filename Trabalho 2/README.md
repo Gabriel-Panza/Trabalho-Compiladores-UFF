@@ -18,19 +18,10 @@ Na pasta `Trabalho 2`:
 
 ```sh
 make
-make run-validos
-make run-erros
+make run
 ```
 
-`make run-validos` compila o Java, traduz os exemplos validos para Python e executa os `.py` gerados.
-
-`make run-erros` executa `exemplos/erros.scm` e mostra erros com trecho do codigo, linha, coluna e mensagem para o usuario.
-
-Por padrao, o Make usa `py -3` no Windows e `python3` no Linux/macOS. Se precisar, informe outro comando:
-
-```sh
-make run-validos PY_CMD=python
-```
+`make run` executa todos os casos exemplos e mostra erros com trecho do codigo, linha, coluna e mensagem para o usuario.
 
 Para compilar um arquivo especifico:
 
