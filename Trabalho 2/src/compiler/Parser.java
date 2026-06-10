@@ -93,6 +93,10 @@ public final class Parser {
         return context.symbolTable();
     }
 
+    public List<ParseContext.ScopeInfo> functionScopes() {
+        return context.functionScopes();
+    }
+
     private void reduceList(List<Object> stack, Token closingToken) {
         List<Object> items = new ArrayList<>();
         while (!stack.isEmpty()) {

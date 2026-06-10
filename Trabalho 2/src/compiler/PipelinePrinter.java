@@ -56,21 +56,27 @@ public final class PipelinePrinter {
         }
     }
 
-    public void symbolTable(List<ParseContext.SymbolInfo> symbols) {
-        out.println("    tabela de simbolos:");
+    public void symbolTable(List<ParseContext.SymbolInfo> symbols, List<ParseContext.ScopeInfo> functionScopes) {
+        out.println("    tabela de simbolos global:");
+        printSymbols(symbols);
+        for (ParseContext.ScopeInfo scope : functionScopes) {
+            out.println("    escopo da funcao " + scope.name + ":");
+            printSymbols(scope.symbols);
+        }
+    }
+
+    private void printSymbols(List<ParseContext.SymbolInfo> symbols) {
         if (symbols.isEmpty()) {
             out.println("        <vazia>");
             return;
         }
-        out.println("        nome        categoria  tipo      aridade");
+        out.println("        nome        categoria  tipo");
         for (ParseContext.SymbolInfo symbol : symbols) {
-            String arity = symbol.kind.equals("funcao") ? Integer.toString(symbol.arity) : "-";
             out.printf(
-                    "        %-11s %-10s %-8s %s%n",
+                    "        %-11s %-10s %s%n",
                     symbol.name,
                     symbol.kind,
-                    symbol.type.name(),
-                    arity);
+                    symbol.type.name());
         }
     }
 

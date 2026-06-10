@@ -14,13 +14,21 @@ public final class ParseContext {
         public final String name;
         public final String kind;
         public final Type type;
-        public final int arity;
 
-        SymbolInfo(String name, String kind, Type type, int arity) {
+        SymbolInfo(String name, String kind, Type type) {
             this.name = name;
             this.kind = kind;
             this.type = type;
-            this.arity = arity;
+        }
+    }
+
+    public static final class ScopeInfo {
+        public final String name;
+        public final List<SymbolInfo> symbols;
+
+        ScopeInfo(String name, List<SymbolInfo> symbols) {
+            this.name = name;
+            this.symbols = Collections.unmodifiableList(new ArrayList<>(symbols));
         }
     }
 
@@ -84,6 +92,7 @@ public final class ParseContext {
             "and", "or", "not", "display", "newline"));
 
     private final List<Diagnostic> diagnostics = new ArrayList<>();
+    private final List<ScopeInfo> functionScopes = new ArrayList<>();
     private final Scope global = new Scope(null);
 
     public void acceptTopLevel(Expr expression) {
@@ -95,13 +104,20 @@ public final class ParseContext {
     }
 
     public List<SymbolInfo> symbolTable() {
+        return snapshot(global);
+    }
+
+    public List<ScopeInfo> functionScopes() {
+        return Collections.unmodifiableList(functionScopes);
+    }
+
+    private List<SymbolInfo> snapshot(Scope scope) {
         List<SymbolInfo> table = new ArrayList<>();
-        for (Symbol symbol : global.symbols.values()) {
+        for (Symbol symbol : scope.symbols.values()) {
             table.add(new SymbolInfo(
                     symbol.name,
                     symbolKindLabel(symbol.kind),
-                    symbol.type,
-                    symbol.arity));
+                    symbol.type));
         }
         Collections.sort(table, (left, right) -> left.name.compareTo(right.name));
         return Collections.unmodifiableList(table);
@@ -195,6 +211,7 @@ public final class ParseContext {
         }
         function.type = bodyType;
         function.arity = header.params.size();
+        functionScopes.add(new ScopeInfo(header.name, snapshot(functionScope)));
         return Type.VOID;
     }
 

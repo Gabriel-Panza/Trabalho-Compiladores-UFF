@@ -45,7 +45,7 @@ public final class Main {
                 throw new CompilerException(parser.semanticDiagnostics());
             }
             printer.item("resultado", "sem erros");
-            printer.symbolTable(parser.symbolTable());
+            printer.symbolTable(parser.symbolTable(), parser.functionScopes());
             printer.message("tabela de simbolos, arvore e tipos foram construidos/verificados junto das reducoes do parser");
 
             printer.step(5, "Geracao de Python");
